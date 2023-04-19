@@ -21,9 +21,9 @@ async def async_setup_entry(hass, entry):
     async def async_update_data():
         urlAuth = "https://solarsunsynk.houselabs.co.za/api/GetToken"  # Replace with your endpoint
         paramsAuth = {"username": username, "password": password}  # Use the username and password from config
-        url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
 
         def fetch_data():
+            url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
             responseAuth = requests.get(urlAuth, params=paramsAuth)
             if responseAuth.ok:
                 token = responseAuth.text
