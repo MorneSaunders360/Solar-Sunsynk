@@ -83,7 +83,7 @@ def async_setup_entry(hass, entry):
 
 
     # Schedule the update_states function to run every 2 minutes
-    hass.helpers.event.async_track_time_interval(update_states, SCAN_INTERVAL)
+    hass.helpers.event.async_track_time_interval(async_update_states, SCAN_INTERVAL)
 
     # Return boolean to indicate that initialization was successful.
     return True
