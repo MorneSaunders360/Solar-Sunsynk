@@ -9,7 +9,7 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 _LOGGER = logging.getLogger(__name__)
 
-def setup(hass, config):
+def setup(hass, entry):
     """Set up the Solar Sunsynk component."""
     username = entry.data.get('username')
     password = entry.data.get('password')
