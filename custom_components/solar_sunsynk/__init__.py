@@ -9,7 +9,7 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 _LOGGER = logging.getLogger(__name__)
 
-async def async_setup_entry(hass, entry):
+def setup(hass, config):
     """Set up the Solar Sunsynk component."""
     username = entry.data.get('username')
     password = entry.data.get('password')
@@ -30,62 +30,57 @@ async def async_setup_entry(hass, entry):
     with open("solar_sunsynk_config.json", "w") as f:
         json.dump(data, f)
 
-    async def async_update_data():
+    def update_states(now=None):
         urlAuth = "https://solarsunsynk.houselabs.co.za/api/GetToken"  # Replace with your endpoint
         paramsAuth = {"username": username, "password": password}  # Use the username and password from config
+        url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
 
-        def fetch_data():
-            url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
-            responseAuth = requests.get(urlAuth, params=paramsAuth)
-            if responseAuth.ok:
-                token = responseAuth.text
-                headers = {"Authorization": f"Bearer {token}"}
+        responseAuth = requests.get(urlAuth, params=paramsAuth)
+        if responseAuth.ok:
+            token = responseAuth.text
+            headers = {"Authorization": f"Bearer {token}"}
+
+        response = requests.get(url, headers=headers)
+
+        if not response.ok:
+            hass.states.set("solar_sunsynk.error", "Failed")
+        else:
+            data = json.loads(response.content)["data"]
+            infos = data["infos"]
+            for info in infos:
+                # Define the entity ID as "solar_sunsynk.thumb"
+                entity_idthumb = "solar_sunsynk.thumb"
+                # Set the state for the entity
+                hass.states.set(entity_idthumb, info["thumbUrl"])
+                
+                for keyinfo, valueInfo in info.items():
+                    if keyinfo == 'plantPermission' or valueInfo is None:
+                        continue
+                    # Define the entity ID as "solar_sunsynk.<key>"
+                    entity_idinfo = f"solar_sunsynk.{keyinfo}"
+                    # Set the state for the entity
+                    hass.states.set(entity_idinfo, valueInfo)
+                        
+                
+                id = info["id"]
+                url = f"https://pv.inteless.com/api/v1/plant/energy/{id}/flow"
                 response = requests.get(url, headers=headers)
-                if response.ok:
-                    data = json.loads(response.content)["data"]
-                    infos = data["infos"]
-                    for info in infos:
-                        # Define the entity ID as "solar_sunsynk.thumb"
-                        entity_idthumb = "solar_sunsynk.thumb"
-                        # Set the state for the entity
-                        hass.states.async_set(entity_idthumb, info["thumbUrl"])
+                result = json.loads(response.content)
 
-                        for keyinfo, valueInfo in info.items():
-                            if keyinfo == 'plantPermission' or valueInfo is None:
-                                continue
-                            # Define the entity ID as "solar_sunsynk.<key>"
-                            entity_idinfo = f"solar_sunsynk.{keyinfo}"
-                            # Set the state for the entity
-                            hass.states.async_set(entity_idinfo, valueInfo)
+                # Set Home Assistant sensor entities for all data in the result
+                for key, value in result["data"].items():
+                    if value is None:
+                        continue
+                    # Check if the key is numeric
+                    entity_id = f"solar_sunsynk.{key}"
+                    # Set the state for the entity
+                    hass.states.set(entity_id, value)
+                        
 
-                        id = info["id"]
-                        url = f"https://pv.inteless.com/api/v1/plant/energy/{id}/flow"
-                        response = requests.get(url, headers=headers)
-                        response_code = response.status_code
-                        result = json.loads(response.content)
 
-                        # Set Home Assistant sensor entities for all data in the result
-                        for key, value in result["data"].items():
-                            if value is None:
-                                continue
-                            # Check if the key is numeric
-                            entity_id = f"solar_sunsynk.{key}"
-                            # Set the state for the entity
-                            hass.states.async_set(entity_id, value)
 
-        await hass.async_add_executor_job(fetch_data)
+    # Schedule the update_states function to run every 2 minutes
+    hass.helpers.event.async_track_time_interval(update_states, SCAN_INTERVAL)
 
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name="solar_sunsynk",
-        update_method=async_update_data,
-        update_interval=SCAN_INTERVAL,
-    )
-
-    hass.data[DOMAIN] = coordinator
-    await coordinator.async_refresh()
+    # Return boolean to indicate that initialization was successful.
     return True
-
-async def _async_update_finished():
-    _LOGGER.debug("Solar Sunsynk data update finished.")
