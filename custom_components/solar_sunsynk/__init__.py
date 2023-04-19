@@ -88,3 +88,6 @@ async def async_setup_entry(hass, entry):
     hass.data[DOMAIN] = coordinator
 
     return True
+
+async def _async_update_finished():
+    _LOGGER.debug("Solar Sunsynk data update finished.")
