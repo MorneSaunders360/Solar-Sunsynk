@@ -9,10 +9,13 @@ SCAN_INTERVAL = timedelta(seconds=120)
 
 _LOGGER = logging.getLogger(__name__)
 
-def setup(hass, entry):
+def async_setup_entry(hass, entry):
     """Set up the Solar Sunsynk component."""
-    username = entry.data.get('username')
-    password = entry.data.get('password')
+    username = ""
+    password = ""
+    if entry is not None:
+        username = entry.data.get('username')
+        password = entry.data.get('password')
 
     # If username and password not present in configuration, try to load from file
     if username is None or password is None:
@@ -30,7 +33,7 @@ def setup(hass, entry):
     with open("solar_sunsynk_config.json", "w") as f:
         json.dump(data, f)
 
-    def update_states(now=None):
+    def async_update_states(now=None):
         urlAuth = "https://solarsunsynk.houselabs.co.za/api/GetToken"  # Replace with your endpoint
         paramsAuth = {"username": username, "password": password}  # Use the username and password from config
         url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
