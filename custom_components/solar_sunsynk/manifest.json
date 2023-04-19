@@ -1,17 +1,8 @@
 {
-  "domain": "solar_sunsynk",
-  "name": "Solar Sunsynk",
-  "documentation": "https://example.com/docs/solar_sunsynk/",
-  "dependencies": [],
-  "codeowners": [],
-  "requirements": [],
-  "config_flow": true,
-  "integration_images": [],
-  "issue_tracker": "https://github.com/yourusername/solar_sunsynk/issues",
-  "version": "0.0.1",
-  "description": "A component for the Solar Sunsynk power monitoring system.",
-  "release_notes": {
-    "0.0.1": "- Initial release."
-  },
-  "python_script": null
+    "domain": "solar_sunsynk",
+    "name": "Solar Sunsynk",
+    "requirements": [],
+    "documentation": "",
+    "version":"1.0.0"
 }
+  

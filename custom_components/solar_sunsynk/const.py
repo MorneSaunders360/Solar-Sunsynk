@@ -1,1 +1,0 @@
-DOMAIN = "solar_sunsynk"
