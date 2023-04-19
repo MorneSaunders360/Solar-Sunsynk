@@ -83,10 +83,8 @@ async def async_setup_entry(hass, entry):
         update_interval=SCAN_INTERVAL,
     )
 
-    await coordinator.async_refresh()
-
     hass.data[DOMAIN] = coordinator
-
+    await coordinator.async_refresh()
     return True
 
 async def _async_update_finished():
