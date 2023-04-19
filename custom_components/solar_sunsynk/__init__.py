@@ -8,6 +8,8 @@ from homeassistant.helpers.entity import Entity
 DOMAIN = "solar_sunsynk"
 SCAN_INTERVAL = timedelta(seconds=120)
 
+async def async_setup(hass: HomeAssistant, config: dict):
+    return True
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     username = entry.data.get('username')
     password = entry.data.get('password')
@@ -58,10 +60,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
                     entity_id = f"solar_sunsynk.{key}"
                     # Set the state for the entity
                     hass.states.async_set(entity_id, value)
-                        
 
     # Schedule the update_states function to run every 2 minutes
     hass.helpers.event.async_track_time_interval(update_states, SCAN_INTERVAL)
 
     # Return boolean to indicate that initialization was successful.
+    return True
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    # Remove entities that belong to the integration
+    await asyncio.gather(
+        *[hass.config_entries.async_forward_entry_unload(entry, domain) for domain in ["sensor"]]
+    )
+
     return True

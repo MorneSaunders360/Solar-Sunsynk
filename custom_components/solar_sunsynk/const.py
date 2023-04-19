@@ -1,0 +1,1 @@
+DOMAIN = "solar_sunsynk"
