@@ -14,9 +14,21 @@ async def async_setup_entry(hass, entry):
     username = entry.data.get('username')
     password = entry.data.get('password')
 
+    # If username and password not present in configuration, try to load from file
     if username is None or password is None:
-        _LOGGER.error("Missing required configuration items %s or %s", 'username', 'password')
-        return False
+        try:
+            with open("solar_sunsynk_config.json", "r") as f:
+                data = json.load(f)
+                username = data.get("username")
+                password = data.get("password")
+        except FileNotFoundError:
+            _LOGGER.error("Missing required configuration items %s or %s", 'username', 'password')
+            return False
+
+    # Save username and password to file
+    data = {"username": username, "password": password}
+    with open("solar_sunsynk_config.json", "w") as f:
+        json.dump(data, f)
 
     async def async_update_data():
         urlAuth = "https://solarsunsynk.houselabs.co.za/api/GetToken"  # Replace with your endpoint
