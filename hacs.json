@@ -3,4 +3,5 @@
     "render_readme": true,
     "content_in_root": false,
     "country": "ZA",
+    "homeassistant": "2022.7.0"
 }
