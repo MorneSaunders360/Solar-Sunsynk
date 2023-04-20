@@ -48,7 +48,6 @@ def setup(hass, config):
                 id = info["id"]
                 url = f"https://pv.inteless.com/api/v1/plant/energy/{id}/flow"
                 response = requests.get(url, headers=headers)
-                response_code = response.status_code
                 result = json.loads(response.content)
 
                 # Set Home Assistant sensor entities for all data in the result
@@ -59,10 +58,21 @@ def setup(hass, config):
                     entity_id = f"sensor.solar_sunsynk_{key}"
                     # Set the state for the entity
                     hass.states.set(entity_id, value)
-                        
+                
+                url = f"https://pv.inteless.com/api/v1/plant/{id}/realtime?id={id}"
+                response = requests.get(url, headers=headers)
+                result = json.loads(response.content)
 
-
-
+                # Set Home Assistant sensor entities for all data in the result
+                for key, value in result["data"].items():
+                    if value is None:
+                        continue
+                    # Check if the key is numeric
+                    entity_id = f"sensor.solar_sunsynk_{key}"
+                    # Set the state for the entity
+                    hass.states.set(entity_id, value)
+                    
+                    
     # Schedule the update_states function to run every 2 minutes
     hass.helpers.event.async_track_time_interval(update_states, SCAN_INTERVAL)
 
