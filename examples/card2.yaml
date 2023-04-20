@@ -1,0 +1,63 @@
+type: markdown
+content: >
+  {% set battery_capacity = states('sensor.solar_sunsynk_totalpower') | float %}
+
+  {% set battery_soc = states('sensor.solar_sunsynk_soc') | float / 100 %}
+
+  {% set load_power = states('sensor.solar_sunsynk_loadorepspower') | float %}
+
+  {% set battery_power = battery_capacity * battery_soc * 1000 %}
+
+  {% set battery_life = battery_power / load_power %}
+
+
+  {% if battery_soc < 0.30 %}
+    <ha-alert alert-type="error">Battery Life: {{ battery_life | round(2) }} hours</ha-alert>
+  {% elif battery_soc < 0.50 %}
+    <ha-alert alert-type="warning">Battery Life: {{ battery_life | round(2) }} hours</ha-alert>
+  {% else %}
+    <ha-alert alert-type="success">Battery Life: {{ battery_life | round(2) }} hours</ha-alert>
+  {% endif %}
+
+
+  <img src="{{ states('solar_sunsynk.thumb') }}" alt="Solar SunSynk Thumbnail"
+  width="100%">
+
+  <br>
+
+  <br>
+
+  <hr>
+
+  <div>{{states('sensor.solar_sunsynk_address')}}</div>
+
+  <hr>
+
+  <h3>Total Battery Capacity : {{ states('sensor.solar_sunsynk_totalpower')}}
+  kWp</h3>
+
+  <table width="100%">
+   <tr>
+      <td>Charging Battery</td>
+        <td>{{ 'Yes' if states('sensor.solar_sunsynk_tobat') == 'True' else 'No' }}</td>
+    </tr>
+    
+    <tr>
+      <td>State of charge</td>
+      <td>{{ states('sensor.solar_sunsynk_soc')}} %</td>
+    </tr>
+    <tr>
+      <td>Grid Power</td>
+      <td>{{ states('sensor.solar_sunsynk_gridormeterpower')}} W</td>
+    </tr>
+    <tr>
+      <td>Battery Power</td>
+      <td>{{ states('sensor.solar_sunsynk_battpower')| float | default(0) | abs }} W</td>
+    </tr>
+    <tr>
+      <td>Load or EPS Power</td>
+      <td>{{ states('sensor.solar_sunsynk_loadorepspower') }} W</td>
+    </tr>
+  </table>
+
+  <hr>
