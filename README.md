@@ -2,7 +2,7 @@
 
 A Home Assistant integration to track your sunsynk solar system.
 
-![img_11.png](https://github.com/ITLife360/solar_sunsynk/blob/main/Solar%20Sunsynk%20Card.png?raw=true)
+![image](https://user-images.githubusercontent.com/109594480/233388451-6bad6329-64bc-42e0-b4e9-e63eb1ae4978.png)
 
 # HACS Install 
 1. Go to HACS Integrations on your Home Assitant instance
@@ -28,4 +28,11 @@ I created these cards with the help the following
 
 [Code](examples/card1.yaml)  
 ![image](https://user-images.githubusercontent.com/109594480/233350917-932c02d2-3e9d-4982-a589-47d440dafd3b.png)
+</details>
+
+<details>
+  <summary>Card 2</summary>
+
+[Code](examples/card2.yaml)  
+![image](https://user-images.githubusercontent.com/109594480/233388223-9298c90e-aa48-45d3-9a07-3ed51ac25265.png)
 </details>
