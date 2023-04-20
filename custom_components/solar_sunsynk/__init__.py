@@ -40,7 +40,7 @@ def setup(hass, config):
                     if keyinfo == 'plantPermission' or valueInfo is None:
                         continue
                     # Define the entity ID as "solar_sunsynk.<key>"
-                    entity_idinfo = f"solar_sunsynk.{keyinfo}"
+                    entity_idinfo = f"sensor.solar_sunsynk_{keyinfo}"
                     # Set the state for the entity
                     hass.states.set(entity_idinfo, valueInfo)
                         
@@ -56,7 +56,7 @@ def setup(hass, config):
                     if value is None:
                         continue
                     # Check if the key is numeric
-                    entity_id = f"solar_sunsynk.{key}"
+                    entity_id = f"sensor.solar_sunsynk_{key}"
                     # Set the state for the entity
                     hass.states.set(entity_id, value)
                         
