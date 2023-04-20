@@ -1,0 +1,29 @@
+type: markdown
+content: >2
+    ## Solar SunSynk
+
+  <img src="{{ states('solar_sunsynk.thumb') }}" alt="Solar SunSynk Thumbnail"
+  width="100%">
+
+  <br>
+
+  <br>
+
+  <table width="100%">
+    <tr>
+      <td>State of charge</td>
+      <td>{{ states('sensor.solar_sunsynk_soc') | float | default(0) | abs }} %</td>
+    </tr>
+    <tr>
+      <td>Grid Power</td>
+      <td>{{ states('sensor.solar_sunsynk_gridormeterpower') | float | default(0) | abs }} W</td>
+    </tr>
+    <tr>
+      <td>Battery Power</td>
+      <td>{{ states('sensor.solar_sunsynk_battpower') | float | default(0) | abs }} W</td>
+    </tr>
+    <tr>
+      <td>Load or EPS Power</td>
+      <td>{{ states('sensor.solar_sunsynk_loadorepspower') | float | default(0) | abs }} W</td>
+    </tr>
+  </table>
