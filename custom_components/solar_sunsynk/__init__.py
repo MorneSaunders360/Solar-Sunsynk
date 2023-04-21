@@ -30,9 +30,8 @@ def setup(hass, config):
         url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
 
         responseAuth = requests.post(urlAuth, json=payload, headers=headers).json()
-        if responseAuth.ok:
-            token = responseAuth["data"]["access_token"]
-            headers = {"Authorization": f"Bearer {token}"}
+        token = responseAuth["data"]["access_token"]
+        headers = {"Authorization": f"Bearer {token}"}
 
         response = requests.get(url, headers=headers)
 
