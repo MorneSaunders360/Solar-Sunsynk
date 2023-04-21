@@ -14,13 +14,24 @@ def setup(hass, config):
         return False
 
     def update_states(now=None):
-        urlAuth = "https://solarsunsynk.houselabs.co.za/api/GetToken"  # Replace with your endpoint
-        paramsAuth = {"username": username, "password": password}  # Use the username and password from config
+        headers = {
+        'Content-type':'application/json', 
+        'Accept':'application/json'
+        }
+
+        payload = {
+        "username": username,
+        "password": password,
+        "grant_type":"password",
+        "client_id":"csp-web"
+        }
+
+        urlAuth = "https://pv.inteless.com/oauth/token"  # Replace with your endpoint
         url = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
 
-        responseAuth = requests.get(urlAuth, params=paramsAuth)
+        responseAuth = requests.post(urlAuth, json=payload, headers=headers).json()
         if responseAuth.ok:
-            token = responseAuth.text
+            token = responseAuth["data"]["access_token"]
             headers = {"Authorization": f"Bearer {token}"}
 
         response = requests.get(url, headers=headers)
