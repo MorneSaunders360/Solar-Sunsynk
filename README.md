@@ -1,4 +1,4 @@
-# Solar sunsynk [![hacs_badge](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/integration)
+# Solar sunsynk ![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)
 
 A Home Assistant integration to track your sunsynk solar system.
 
