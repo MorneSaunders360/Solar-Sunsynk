@@ -1,8 +1,11 @@
 {
     "domain": "solar_sunsynk",
     "name": "Solar Sunsynk",
-    "requirements": [],
     "documentation": "https://github.com/ITLife360/solar_sunsynk/blob/main/README.md",
-    "version":"1.0.0"
-}
+    "dependencies": [],
+    "requirements": ["requests"],
+    "config_flow": true,
+    "iot_class": "cloud_polling",
+    "version": "1.0.0"
+  }
   
