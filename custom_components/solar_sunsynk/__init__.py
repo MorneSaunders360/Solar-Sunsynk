@@ -5,7 +5,7 @@ from datetime import timedelta
 from .config_flow import SolarSunsynkConfigFlow
 
 DOMAIN = "solar_sunsynk"
-SCAN_INTERVAL = timedelta(seconds=120)
+SCAN_INTERVAL = timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
 
