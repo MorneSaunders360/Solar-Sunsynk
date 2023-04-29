@@ -8,12 +8,10 @@ A Home Assistant integration to track your sunsynk solar system.
 1. Go to HACS Integrations on your Home Assitant instance
 2. Select "+ Explore & Download Repositories" and search for "Solar Sunsynk"
 3. Select "Solar Sunsynk" and "Download this repository with HACS"
-4. Once downloaded, go to your configuration.yaml and add the following code
- ```bash
- solar_sunsynk:
-  username: "YOUR_USERANME"
-  password: "YOUR_PASSWORD"
-```
+4. Once downloaded, go to settings, then devices and services
+5. Click on add intergration and search for 'Solar Sunsynk'
+6. Follow the prompt with user name and then password, wait for 2 minutes and your data should be loaded
+
 6. Setup cards and automations
 
 # Sensor
