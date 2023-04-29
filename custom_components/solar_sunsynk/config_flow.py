@@ -26,8 +26,8 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required("username"): str,
-                    vol.Required("password"): str,
+                    vol.Required("username", description={"suggested_value": "Enter your Sunsynk inverter's username"}): str,
+                    vol.Required("password", description={"suggested_value": "Enter your Sunsynk inverter's password"}): str,
                 }
             ),
             errors=errors,
