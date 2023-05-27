@@ -44,7 +44,13 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     await coordinator.async_config_entry_first_refresh()
     
     # Create sensor entities and add them
-    async_add_entities(SolarSunSynkSensor(coordinator, result_key) for result_key in coordinator.data.keys())
+    entities = []
+    for result_key in coordinator.data.keys():
+        entity = SolarSunSynkSensor(coordinator, result_key)
+        entities.append(entity)
+
+    async_add_entities(entities)
+
 
 class SolarSunSynkSensor(SensorEntity):
     """Representation of a sensor entity for Solar Sunsynk data."""
@@ -56,12 +62,16 @@ class SolarSunSynkSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID."""
-        return f"solar_sunsynk_2{self.result_key}"
+        return f"sunsynk_{self.result_key}"
+
+
 
     @property
     def name(self):
         """Return the name of the sensor."""
-        return self.result_key
+        return f"solar_sunsynk_{self.result_key}"
+
+
 
     @property
     def state(self):

@@ -20,7 +20,7 @@ content: >
   {% endif %}
 
 
-  <img src="{{ states('solar_sunsynk.thumb') }}" alt="Solar SunSynk Thumbnail"
+  <img src="{{ states('sensor.solar_sunsynk_thumburl') }}" alt="Solar SunSynk Thumbnail"
   width="100%">
 
   <br>
