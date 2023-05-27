@@ -21,10 +21,10 @@ def setup(hass: core.HomeAssistant, entry: config_entries.ConfigEntry):
     device_registry.async_get_or_create(
     config_entry_id=entry.entry_id,
     identifiers={(DOMAIN, '1.0.0.0')},  # Assuming 'id' is the unique identifier for the device
-    name="Sunsynk",  # Assuming 'name' is the name of the device
-    manufacturer="Sunsynk",  # Replace with the manufacturer's name
+    name="API",  # Assuming 'name' is the name of the device
+    manufacturer="MorneSaunders360",  # Replace with the manufacturer's name
     model="Sunsynk",  # Replace with the model of the device
-    sw_version="1.0.0.0"  # Replace with the software version of the device
+    sw_version="1.0.0."  # Replace with the software version of the device
     )
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
