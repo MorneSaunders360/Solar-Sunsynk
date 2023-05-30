@@ -8,7 +8,7 @@ import json
 import logging
 # Constants
 _LOGGER = logging.getLogger(__name__)
-UPDATE_INTERVAL = 10
+UPDATE_INTERVAL = 30
 AUTH_URL = "https://pv.inteless.com/oauth/token"
 API_URL = "https://pv.inteless.com/api/v1/plants?page=1&limit=10&name=&status="
 async def async_setup_entry(hass, config_entry, async_add_entities):
