@@ -11,10 +11,11 @@
         }
       },
       "error": {
-        "already_configured": "Device is already configured"
+        "empty_credentials": "The username and password fields cannot be empty.",
+        "invalid_auth": "Failed to authenticate with Solar Sunsynk. Please check your username and password."
       },
       "abort": {
-        "already_configured": "Device is already configured"
+        "single_instance_allowed": "Only a single instance of the Solar Sunsynk integration is allowed."
       }
     }
   }

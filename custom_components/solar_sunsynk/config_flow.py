@@ -14,6 +14,10 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     async def async_step_user(self, user_input=None):
+        # Check if a configuration entry already exists. If so, abort the current flow.
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+
         errors = {}
         if user_input is not None:
             username = user_input.get("username")
