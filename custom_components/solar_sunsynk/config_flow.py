@@ -16,40 +16,53 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user(self, user_input=None):
         errors = {}
         if user_input is not None:
-            valid = await self._validate_credentials(user_input["username"], user_input["password"])
-            if valid:
-                return self.async_create_entry(title="Solar Sunsynk", data=user_input)
+            username = user_input.get("username")
+            password = user_input.get("password")
+            if not username or not password:
+                errors["base"] = "empty_credentials"
             else:
-                errors["base"] = "invalid_auth"
+                valid = await self._validate_credentials(username, password)
+                if valid:
+                    return self.async_create_entry(title="Solar Sunsynk", data=user_input)
+                else:
+                    errors["base"] = "invalid_auth"
 
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
                 {
-                    vol.Required("username", description={"suggested_value": "Enter your Sunsynk inverter's username"}): str,
-                    vol.Required("password", description={"suggested_value": "Enter your Sunsynk inverter's password"}): str,
+                    vol.Required("username"): str,
+                    vol.Required("password"): str,
                 }
             ),
             errors=errors,
         )
 
+
     async def _validate_credentials(self, username, password):
         def check_credentials():
-            headers = {
-                'Content-type': 'application/json',
-                'Accept': 'application/json'
-            }
+            validAuth = False
+            try:
+                headers = {
+                    'Content-type': 'application/json',
+                    'Accept': 'application/json'
+                }
 
-            payload = {
-                "username": username,
-                "password": password,
-                "grant_type": "password",
-                "client_id": "csp-web"
-            }
+                payload = {
+                    "username": username,
+                    "password": password,
+                    "grant_type": "password",
+                    "client_id": "csp-web"
+                }
 
-            urlAuth = "https://pv.inteless.com/oauth/token"
-            responseAuth = requests.post(urlAuth, json=payload, headers=headers)
-            return responseAuth.ok
+                urlAuth = "https://pv.inteless.com/oauth/token"
+                responseAuth = requests.post(urlAuth, json=payload, headers=headers)
+                json_response = responseAuth.json()
+                if json_response.get('success') == True:
+                    validAuth = True
+                return validAuth
+            except Exception as e:
+                return validAuth
 
         return await self.hass.async_add_executor_job(check_credentials)
 

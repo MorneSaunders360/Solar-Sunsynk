@@ -24,7 +24,7 @@ def setup(hass: core.HomeAssistant, entry: config_entries.ConfigEntry):
     name="API",  # Assuming 'name' is the name of the device
     manufacturer="MorneSaunders360",  # Replace with the manufacturer's name
     model="API",  # Replace with the model of the device
-    sw_version="1.0.0.1"  # Replace with the software version of the device
+    sw_version="1.0.0.4"  # Replace with the software version of the device
     )
     hass.async_create_task(
         hass.config_entries.async_forward_entry_setup(entry, "sensor")
