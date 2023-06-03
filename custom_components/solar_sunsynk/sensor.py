@@ -14,7 +14,7 @@ _LOGGER = logging.getLogger(__name__)
 DEVICE_INFO = {
     "identifiers": {(DOMAIN, "solar_sunsynk")},
     "name": "Solar Sunsynk",
-    "manufacturer": "Solar Manufacturer",
+    "manufacturer": "MorneSaunders360",
     "model": "Solar Model",
     "sw_version": "1.0",
 }
