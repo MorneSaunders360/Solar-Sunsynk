@@ -9,7 +9,15 @@ import logging
 import time
 
 # Constants
+DOMAIN = "solar_sunsynk"
 _LOGGER = logging.getLogger(__name__)
+DEVICE_INFO = {
+    "identifiers": {(DOMAIN, "solar_sunsynk")},
+    "name": "Solar Sunsynk",
+    "manufacturer": "Solar Manufacturer",
+    "model": "Solar Model",
+    "sw_version": "1.0",
+}
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up sensors from config entry."""
@@ -25,11 +33,17 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     
     # Fetch initial data
     await coordinator.async_config_entry_first_refresh()
-    
+    # Create device registry
+    device_registry = hass.helpers.device_registry.async_get(hass)
+    device = device_registry.async_get_or_create(
+        config_entry_id=config_entry.entry_id,
+        **DEVICE_INFO,
+    )
+
     # Create sensor entities and add them
     entities = []
     for result_key in coordinator.data.keys():
-        entity = SolarSunSynkSensor(coordinator, result_key)
+        entity = SolarSunSynkSensor(coordinator, result_key,device)
         entities.append(entity)
 
     async_add_entities(entities)
@@ -37,11 +51,24 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
 
 class SolarSunSynkSensor(SensorEntity):
     """Representation of a sensor entity for Solar Sunsynk data."""
-    def __init__(self, coordinator, result_key):
+    def __init__(self, coordinator, result_key,device):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self.result_key = result_key
-
+        self.device = device 
+    
+    @property
+    def device_info(self):
+        """Return device information."""
+        return {
+            "identifiers": {(DOMAIN, "solar_sunsynk")},
+            "name": self.device.name,
+            "manufacturer": self.device.manufacturer,
+            "model": self.device.model,
+            "sw_version": self.device.sw_version,
+            "via_device": (DOMAIN, self.device.id),
+        }
+        
     @property
     def unique_id(self):
         """Return a unique ID."""
