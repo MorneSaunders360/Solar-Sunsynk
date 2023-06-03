@@ -22,10 +22,11 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             username = user_input.get("username")
             password = user_input.get("password")
+            region = user_input.get("region")
             if not username or not password:
                 errors["base"] = "empty_credentials"
             else:
-                valid = await self._validate_credentials(username, password)
+                valid = await self._validate_credentials(username, password, region)
                 if valid:
                     return self.async_create_entry(title="Solar Sunsynk", data=user_input)
                 else:
@@ -37,13 +38,14 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 {
                     vol.Required("username"): str,
                     vol.Required("password"): str,
+                    vol.Required("region"): vol.In(["Region 1", "Region 2"]),
                 }
             ),
             errors=errors,
         )
 
 
-    async def _validate_credentials(self, username, password):
+    async def _validate_credentials(self, username, password, region):
         def check_credentials():
             validAuth = False
             try:
@@ -59,7 +61,11 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "client_id": "csp-web"
                 }
 
-                urlAuth = "https://pv.inteless.com/oauth/token"
+                if region == "Region 1":
+                    urlAuth = "https://pv.inteless.com/oauth/token"
+                elif region == "Region 2":
+                    urlAuth = "https://api.sunsynk.net/oauth/token"
+
                 responseAuth = requests.post(urlAuth, json=payload, headers=headers)
                 json_response = responseAuth.json()
                 if json_response.get('success') == True:

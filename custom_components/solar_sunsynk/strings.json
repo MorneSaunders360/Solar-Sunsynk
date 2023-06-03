@@ -1,21 +1,22 @@
 {
-    "config": {
-      "title": "Connect to your Solar Sunsynk",
-      "step": {
-        "user": {
-          "title": "Please enter your credentials",
-          "data": {
-            "username": "Username",
-            "password": "Password"
-          }
+  "config": {
+    "title": "Connect to your Solar Sunsynk",
+    "step": {
+      "user": {
+        "title": "Please enter your credentials",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "region": "Region"
         }
-      },
-      "error": {
-        "empty_credentials": "The username and password fields cannot be empty.",
-        "invalid_auth": "Failed to authenticate with Solar Sunsynk. Please check your username and password."
-      },
-      "abort": {
-        "single_instance_allowed": "Only a single instance of the Solar Sunsynk integration is allowed."
       }
+    },
+    "error": {
+      "empty_credentials": "The username and password fields cannot be empty.",
+      "invalid_auth": "Failed to authenticate with Solar Sunsynk. Please check your username and password."
+    },
+    "abort": {
+      "single_instance_allowed": "Only a single instance of the Solar Sunsynk integration is allowed."
     }
   }
+}
