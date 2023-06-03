@@ -2,7 +2,6 @@ import logging
 import requests
 import voluptuous as vol
 from homeassistant import config_entries
-from homeassistant.core import callback
 
 DOMAIN = "solar_sunsynk"
 
