@@ -129,32 +129,35 @@ async def fetch_data(session, config_entry):
         token, expiration_time = await get_token(session, USERNAME, PASSWORD, API_URL)
     headers = {"Authorization": f"Bearer {token}"}
     # Fetch plant data
-    async with async_timeout.timeout(10):
-        async with session.get(f"{API_URL}api/v1/plants?page=1&limit=10&name=&status=", headers=headers) as resp:
-            data = await resp.json()
-            if resp.status != 200:
-                raise UpdateFailed(f"Request failed: {data}")
-            infos = data["data"]["infos"]
+    async with session.get(f"{API_URL}api/v1/plants?page=1&limit=10&name=&status=", headers=headers) as resp:
+        data = await resp.json()
+        if resp.status != 200:
+            raise UpdateFailed(f"Request failed: {data}")
+        infos = data["data"]["infos"]
     
     # Combine all the plant data into a single dictionary
     combined_data = {}
     for info in infos:
         id = info["id"]
-        info = {k: str(v)[:255] for k, v in info.items() if v is not None}
+        info = {k: str(v)[:255] for k, v in info.items() if v is not None and k != "plantPermission"}
         combined_data.update(info)
 
         # Fetch additional data for each plant
-        async with async_timeout.timeout(10):
-            # Fetch energy flow data
-            async with session.get(f"{API_URL}api/v1/plant/energy/{id}/flow", headers=headers) as resp:
-                energy_flow_data = await resp.json()
-                energy_flow_data = {k: str(v)[:255] for k, v in energy_flow_data["data"].items() if v is not None}
-                combined_data.update(energy_flow_data)
+        # Fetch energy flow data
+        async with session.get(f"{API_URL}api/v1/plant/energy/{id}/flow", headers=headers) as resp:
+            energy_flow_data = await resp.json()
+            energy_flow_data = {k: str(v)[:255] for k, v in energy_flow_data["data"].items() if v is not None}
+            combined_data.update(energy_flow_data)
 
-            # Fetch realtime data
-            async with session.get(f"{API_URL}api/v1/plant/{id}/realtime?id={id}", headers=headers) as resp:
-                realtime_data = await resp.json()
-                realtime_data = {k: str(v)[:255] for k, v in realtime_data["data"].items() if v is not None}
-                combined_data.update(realtime_data)
 
+        # Fetch realtime data
+        async with session.get(f"{API_URL}api/v1/plant/{id}/realtime?id={id}", headers=headers) as resp:
+            realtime_data = await resp.json()
+            realtime_data = {
+                k: v["code"] if k == "currency" else str(v)[:255] 
+                for k, v in realtime_data["data"].items() 
+                if v is not None
+            }
+            combined_data.update(realtime_data)
+            
     return combined_data
