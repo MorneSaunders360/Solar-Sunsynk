@@ -1,15 +1,6 @@
-import requests
-import json
-import logging
-from datetime import timedelta
-from .config_flow import SolarSunsynkConfigFlow
 from homeassistant.helpers import device_registry as dr
 from homeassistant import config_entries, core
 DOMAIN = "solar_sunsynk"
-SCAN_INTERVAL = timedelta(seconds=10)
-
-_LOGGER = logging.getLogger(__name__)
-
 async def async_setup(hass, config):
     return True
 
