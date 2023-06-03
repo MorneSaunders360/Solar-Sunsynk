@@ -7,7 +7,7 @@ import async_timeout
 import json
 import logging
 import time
-
+import re
 # Constants
 DOMAIN = "solar_sunsynk"
 _LOGGER = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ DEVICE_INFO = {
     "identifiers": {(DOMAIN, "solar_sunsynk")},
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
-    "model": "Solar Model",
+    "model": "Sunksynk API",
     "sw_version": "1.0",
 }
 UPDATE_INTERVAL = 10
@@ -79,9 +79,12 @@ class SolarSunSynkSensor(SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"solar_sunsynk_{self.result_key}"
+        return self._format_key_to_title(self.result_key)
 
-
+    def _format_key_to_title(self, key):
+        """Format the key in the format 'totalPower' to 'Total Power'."""
+        s1 = re.sub('(.)([A-Z][a-z]+)', r'\1 \2', key)
+        return re.sub('([a-z0-9])([A-Z])', r'\1 \2', s1).title()
 
     @property
     def state(self):
