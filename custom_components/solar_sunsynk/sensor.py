@@ -15,7 +15,7 @@ DEVICE_INFO = {
     "identifiers": {(DOMAIN, "solar_sunsynk")},
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
-    "model": "Sunksynk API",
+    "model": "Sunsynk API",
     "sw_version": "1.0",
 }
 UPDATE_INTERVAL = 10
