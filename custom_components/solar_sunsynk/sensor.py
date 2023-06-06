@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.9",
+    "sw_version": "1.0.10",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
