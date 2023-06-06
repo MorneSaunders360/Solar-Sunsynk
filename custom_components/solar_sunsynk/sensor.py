@@ -16,7 +16,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0",
+    "sw_version": "1.0.8",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -39,24 +39,25 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         config_entry_id=config_entry.entry_id,
         **DEVICE_INFO,
     )
-
+    
     # Create sensor entities and add them
     entities = []
     for result_key in coordinator.data.keys():
-        entity = SolarSunSynkSensor(coordinator, result_key,device)
+        entity = SolarSunSynkSensor(coordinator, result_key,device, coordinator.data.get("id"))
         entities.append(entity)
-
+    
     async_add_entities(entities)
 
 
 class SolarSunSynkSensor(SensorEntity):
     """Representation of a sensor entity for Solar Sunsynk data."""
-    def __init__(self, coordinator, result_key,device):
+    def __init__(self, coordinator, result_key,device,id):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self.result_key = result_key
         self.device = device 
-    
+        self.id = id 
+        
     @property
     def device_info(self):
         """Return device information."""
@@ -72,6 +73,7 @@ class SolarSunSynkSensor(SensorEntity):
     @property
     def unique_id(self):
         """Return a unique ID."""
+        # _LOGGER.debug("entities: %s", f"sunsynk_{self.id}_{self.result_key}")
         return f"sunsynk_{self.result_key}"
 
 
@@ -79,7 +81,7 @@ class SolarSunSynkSensor(SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return self._format_key_to_title(self.result_key)
+        return f"sunsynk_{self.id}_{self.result_key}"
 
     def _format_key_to_title(self, key):
         """Format the key in the format 'totalPower' to 'Total Power'."""

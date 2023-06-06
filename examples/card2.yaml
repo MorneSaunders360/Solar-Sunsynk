@@ -1,27 +1,53 @@
 type: markdown
 content: >
-  {% set battery_capacity = states('sensor.solar_sunsynk_totalpower') | float %}
+  {% set battery_soc = states('sensor.sunsynk_<OwnId>_soc') | float / 100 %}
 
-  {% set battery_soc = states('sensor.solar_sunsynk_soc') | float / 100 %}
-
-  {% set load_power = states('sensor.solar_sunsynk_loadorepspower') | float %}
-
-  {% set battery_power = battery_capacity * battery_soc * 1000 %}
-
-  {% set battery_life = battery_power / load_power %}
-
-
-  {% if battery_soc < 0.30 %}
-    <ha-alert alert-type="error">Battery Life: {{ battery_life | round(2) }} hours</ha-alert>
-  {% elif battery_soc < 0.50 %}
-    <ha-alert alert-type="warning">Battery Life: {{ battery_life | round(2) }} hours</ha-alert>
+  {% if battery_soc == 0 %}
+    <ha-alert alert-type="warning">Waiting for updated data</ha-alert>
   {% else %}
-    <ha-alert alert-type="success">Battery Life: {{ battery_life | round(2) }} hours</ha-alert>
+
+  {% set battery_capacity = states('sensor.sunsynk_<OwnId>_totalpower') | float %}
+
+
+  {% set load_power = states('sensor.sunsynk_<OwnId>_loadorepspower') | float %}
+
+  {% set power_generation = states('sensor.sunsynk_<OwnId>_pvpower') | float %}
+
+  {% set grid_generation = states('sensor.sunsynk_<OwnId>_gridormeterpower') |
+  float %}
+
+  {% if grid_generation > power_generation %}
+    <ha-alert alert-type="warning">Running on grid power</ha-alert>
+  {% else %}
+
+  {% if power_generation > 0 %}
+
+  {% set battery_life = 0 %}
+    {% if battery_life == 0 %}
+    <ha-alert alert-type="success">Running on solar power</ha-alert>
+    {% endif %}
+  {% else %}
+    {% set battery_power = battery_capacity * battery_soc * 1000 %}
+    {% set battery_life = battery_power / load_power %}
+    {% if (battery_soc < 0.30) %}
+    <ha-alert alert-type="error">Battery Life: {{ battery_life | default('N/A') | round(2) }} hours</ha-alert>
+  {% elif battery_soc < 0.50 %}
+    <ha-alert alert-type="warning">Battery Life: {{ battery_life | default('N/A') | round(2) }} hours</ha-alert>
+  {% else %}
+    <ha-alert alert-type="success">Battery Life: {{ battery_life | default('N/A') | round(2) }} hours</ha-alert>
+  {% endif %}
+
+  {% endif %}
+
+  {% endif %}
+
   {% endif %}
 
 
-  <img src="{{ states('sensor.solar_sunsynk_thumburl') }}" alt="Solar SunSynk Thumbnail"
-  width="100%">
+
+
+  <img src="{{ states('sensor.sunsynk_<OwnId>_thumburl') }}" alt="Solar SunSynk
+  Thumbnail" width="100%">
 
   <br>
 
@@ -29,34 +55,38 @@ content: >
 
   <hr>
 
-  <div>{{states('sensor.solar_sunsynk_address')}}</div>
+  <div>{{states('sensor.sunsynk_<OwnId>_address')}}</div>
 
   <hr>
 
-  <h3>Total Battery Capacity : {{ states('sensor.solar_sunsynk_totalpower')}}
+  <h3>Total Battery Capacity : {{ states('sensor.sunsynk_<OwnId>_totalpower')}}
   kWp</h3>
 
   <table width="100%">
    <tr>
       <td>Charging Battery</td>
-        <td>{{ 'Yes' if states('sensor.solar_sunsynk_tobat') == 'True' else 'No' }}</td>
+        <td>{{ 'Yes' if states('sensor.sunsynk_<OwnId>_tobat') == 'True' else 'No' }}</td>
     </tr>
     
     <tr>
       <td>State of charge</td>
-      <td>{{ states('sensor.solar_sunsynk_soc')}} %</td>
+      <td>{{ states('sensor.sunsynk_<OwnId>_soc')}} %</td>
     </tr>
     <tr>
       <td>Grid Power</td>
-      <td>{{ states('sensor.solar_sunsynk_gridormeterpower')}} W</td>
+      <td>{{ states('sensor.sunsynk_<OwnId>_gridormeterpower')}} W</td>
+    </tr>
+    <tr>
+      <td>Solar Generation</td>
+      <td>{{ states('sensor.sunsynk_<OwnId>_pvpower')| float | default(0) | abs }} W</td>
     </tr>
     <tr>
       <td>Battery Power</td>
-      <td>{{ states('sensor.solar_sunsynk_battpower')| float | default(0) | abs }} W</td>
+      <td>{{ states('sensor.sunsynk_<OwnId>_battpower')| float | default(0) | abs }} W</td>
     </tr>
     <tr>
       <td>Load or EPS Power</td>
-      <td>{{ states('sensor.solar_sunsynk_loadorepspower') }} W</td>
+      <td>{{ states('sensor.sunsynk_<OwnId>_loadorepspower') }} W</td>
     </tr>
   </table>
 
