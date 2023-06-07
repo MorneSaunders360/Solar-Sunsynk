@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.13",
+    "sw_version": "1.0.14",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -124,8 +124,11 @@ class SolarSunSynkSensor(SensorEntity):
             return "energy"
         elif self.result_key in ["pvTo", "toLoad", "toGrid", "toBat", "batTo", "gridTo", "genTo", "minTo", "existsGen", "existsMin", "genOn", "microOn", "existsMeter", "bmsCommFaultFlag", "existThinkPower"]:
             return "switch"
+        elif self.result_key == "efficiency":
+            return "power_factor"
         else:
             return None
+
 
 
     @property
