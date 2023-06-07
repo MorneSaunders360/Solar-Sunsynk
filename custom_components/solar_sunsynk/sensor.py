@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.10",
+    "sw_version": "1.0.11",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -61,6 +61,14 @@ class SolarSunSynkSensor(SensorEntity):
         self.id = id
 
     @property
+    def extra_state_attributes(self):
+        """Return the extra state attributes of the sensor."""
+        attributes = {}
+        if self.result_key == "income" and 'currency' in self.coordinator.data:
+            attributes['currency_code'] = self.coordinator.data['currency']
+        return attributes
+
+    @property
     def device_info(self):
         """Return device information."""
         return {
@@ -86,26 +94,37 @@ class SolarSunSynkSensor(SensorEntity):
     def state(self):
         """Return the state of the sensor."""
         return self.coordinator.data[self.result_key]
+    
 
     @property
     def unit_of_measurement(self):
         """Return the unit this state is expressed in."""
-        if self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac", "etoday", "etotal", "emonth", "eyear", "income", "totalPower"]:
+        attributes = self.extra_state_attributes
+        if self.result_key == "income":
+            return attributes.get('currency_code') or "Currency"
+        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac", "etoday", "etotal", "emonth", "eyear", "totalPower"]:
             return "kWh"
         elif self.result_key == "soc" or self.result_key == "efficiency":
             return "%"
+        elif self.result_key == "pac":
+            return "W"
         else:
             return None
 
     @property
     def device_class(self):
         """Return the device class of the sensor."""
-        if self.result_key == "soc":
+        if self.result_key == "income":
+            return "monetary"
+        elif self.result_key == "soc":
             return "battery"
-        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac", "etoday", "etotal", "emonth", "eyear", "income", "totalPower"]:
+        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac", "etoday", "etotal", "emonth", "eyear", "totalPower"]:
             return "power"
+        elif self.result_key in ["pvTo", "toLoad", "toGrid", "toBat", "batTo", "gridTo", "genTo", "minTo", "existsGen", "existsMin", "genOn", "microOn", "existsMeter", "bmsCommFaultFlag", "existThinkPower"]:
+            return "switch"
         else:
             return None
+
 
     @property
     def state_class(self):
@@ -161,7 +180,6 @@ async def fetch_data(session, config_entry):
         infos = data["data"]["infos"]
     
     # Combine all the plant data into a single dictionary
-# Combine all the plant data into a single dictionary
     combined_data = {}
     for info in infos:
         id = info["id"]
@@ -197,6 +215,5 @@ async def fetch_data(session, config_entry):
                 if v is not None and k != "custCode"
             }
             combined_data.update(realtime_data)
-            
     return combined_data
 
