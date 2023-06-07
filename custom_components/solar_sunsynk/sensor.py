@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.11",
+    "sw_version": "1.0.12",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -191,14 +191,14 @@ async def fetch_data(session, config_entry):
             createAt_object = datetime.strptime(info["createAt"], "%Y-%m-%dT%H:%M:%S.%f%z")
             info["createAt"] = createAt_object.strftime("%Y/%m/%d %H:%M")
 
-        info = {k: str(v)[:255] for k, v in info.items() if v is not None and k != "plantPermission" and k != "custCode"}
+        info = {k: str(v)[:255] for k, v in info.items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
         combined_data.update(info)
 
         # Fetch additional data for each plant
         # Fetch energy flow data
         async with session.get(f"{API_URL}api/v1/plant/energy/{id}/flow", headers=headers) as resp:
             energy_flow_data = await resp.json()
-            energy_flow_data = {k: str(v)[:255] for k, v in energy_flow_data["data"].items() if v is not None and k != "custCode"}
+            energy_flow_data = {k: str(v)[:255] for k, v in energy_flow_data["data"].items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
             combined_data.update(energy_flow_data)
 
         # Fetch realtime data
@@ -212,7 +212,7 @@ async def fetch_data(session, config_entry):
             realtime_data = {
                 k: v["code"] if k == "currency" else str(v)[:255] 
                 for k, v in realtime_data["data"].items() 
-                if v is not None and k != "custCode"
+                if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]
             }
             combined_data.update(realtime_data)
     return combined_data
