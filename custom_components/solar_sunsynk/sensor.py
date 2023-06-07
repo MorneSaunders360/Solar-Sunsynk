@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.12",
+    "sw_version": "1.0.13",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -102,12 +102,12 @@ class SolarSunSynkSensor(SensorEntity):
         attributes = self.extra_state_attributes
         if self.result_key == "income":
             return attributes.get('currency_code') or "Currency"
-        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac", "etoday", "etotal", "emonth", "eyear", "totalPower"]:
+        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac"]:
+            return "W"
+        elif self.result_key in ["etoday", "etotal", "emonth", "eyear", "totalPower"]:
             return "kWh"
         elif self.result_key == "soc" or self.result_key == "efficiency":
             return "%"
-        elif self.result_key == "pac":
-            return "W"
         else:
             return None
 
@@ -118,8 +118,10 @@ class SolarSunSynkSensor(SensorEntity):
             return "monetary"
         elif self.result_key == "soc":
             return "battery"
-        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac", "etoday", "etotal", "emonth", "eyear", "totalPower"]:
+        elif self.result_key in ["pvPower", "battPower", "gridOrMeterPower", "loadOrEpsPower", "genPower", "minPower", "pac"]:
             return "power"
+        elif self.result_key in ["etoday", "etotal", "emonth", "eyear", "totalPower"]:
+            return "energy"
         elif self.result_key in ["pvTo", "toLoad", "toGrid", "toBat", "batTo", "gridTo", "genTo", "minTo", "existsGen", "existsMin", "genOn", "microOn", "existsMeter", "bmsCommFaultFlag", "existThinkPower"]:
             return "switch"
         else:
