@@ -1,0 +1,380 @@
+set_solar_settings:
+  description: Set the solar settings.
+  fields:
+    sn:
+      description: Serial number
+      default: "2107269334"
+      example: "2107269334"
+      required: true
+      selector:
+        text:
+    safetyType:
+      description: Safety type
+      default: "2"
+      example: "2"
+      required: false
+      selector:
+        text:
+    battMode:
+      description: Battery mode
+      default: "-1"
+      example: "-1"
+      required: false
+      selector:
+        text:
+    solarSell:
+      description: Solar sell setting
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    pvMaxLimit:
+      description: Maximum PV limit
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    energyMode:
+      description: Energy mode
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    peakAndVallery:
+      description: Peak and valley setting
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    sysWorkMode:
+      description: System work mode
+      default: "2"
+      example: "2"
+      required: false
+      selector:
+        text:
+    sellTime1:
+      description: Selling time 1
+      default: "01:00"
+      example: "01:00"
+      required: false
+      selector:
+        text:
+          type: time
+    sellTime2:
+      description: Selling time 2
+      default: "05:00"
+      example: "05:00"
+      required: false
+      selector:
+        text:
+          type: time
+    sellTime3:
+      description: Selling time 3
+      default: "12:30"
+      example: "12:30"
+      required: false
+      selector:
+        text:
+          type: time
+    sellTime4:
+      description: Selling time 4
+      default: "13:00"
+      example: "13:00"
+      required: false
+      selector:
+        text:
+          type: time
+    sellTime5:
+      description: Selling time 5
+      default: "17:00"
+      example: "17:00"
+      required: false
+      selector:
+        text:
+          type: time
+    sellTime6:
+      description: Selling time 6
+      default: "21:00"
+      example: "21:00"
+      required: false
+      selector:
+        text:
+          type: time
+    sellTime1Pac:
+      description: Selling time 1 PAC
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    sellTime2Pac:
+      description: Selling time 2 PAC
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    sellTime3Pac:
+      description: Selling time 3 PAC
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    sellTime4Pac:
+      description: Selling time 4 PAC
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    sellTime5Pac:
+      description: Selling time 5 PAC
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    sellTime6Pac:
+      description: Selling time 6 PAC
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    cap1:
+      description: Capacity 1
+      default: "70"
+      example: "70"
+      required: false
+      selector:
+        text:
+    cap2:
+      description: Capacity 2
+      default: "70"
+      example: "70"
+      required: false
+      selector:
+        text:
+    cap3:
+      description: Capacity 3
+      default: "70"
+      example: "70"
+      required: false
+      selector:
+        text:
+    cap4:
+      description: Capacity 4
+      default: "70"
+      example: "70"
+      required: false
+      selector:
+        text:
+    cap5:
+      description: Capacity 5
+      default: "70"
+      example: "70"
+      required: false
+      selector:
+        text:
+    cap6:
+      description: Capacity 6
+      default: "70"
+      example: "70"
+      required: false
+      selector:
+        text:
+    sellTime1Volt:
+      description: Selling time 1 voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    sellTime2Volt:
+      description: Selling time 2 voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    sellTime3Volt:
+      description: Selling time 3 voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    sellTime4Volt:
+      description: Selling time 4 voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    sellTime5Volt:
+      description: Selling time 5 voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    sellTime6Volt:
+      description: Selling time 6 voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    zeroExportPower:
+      description: Zero export power
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solarMaxSellPower:
+      description: Solar maximum sell power
+      default: "9000"
+      example: "9000"
+      required: false
+      selector:
+        text:
+    mondayOn:
+      description: Monday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    tuesdayOn:
+      description: Tuesday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    wednesdayOn:
+      description: Wednesday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    thursdayOn:
+      description: Thursday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    fridayOn:
+      description: Friday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    saturdayOn:
+      description: Saturday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    sundayOn:
+      description: Sunday status
+      default: true
+      example: true
+      required: false
+      selector:
+        boolean:
+    time1on:
+      description: Time 1 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    time2on:
+      description: Time 2 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    time3on:
+      description: Time 3 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    time4on:
+      description: Time 4 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    time5on:
+      description: Time 5 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    time6on:
+      description: Time 6 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    genTime1on:
+      description: Generation time 1 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    genTime2on:
+      description: Generation time 2 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    genTime3on:
+      description: Generation time 3 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    genTime4on:
+      description: Generation time 4 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    genTime5on:
+      description: Generation time 5 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:
+    genTime6on:
+      description: Generation time 6 status
+      default: false
+      example: false
+      required: false
+      selector:
+        boolean:

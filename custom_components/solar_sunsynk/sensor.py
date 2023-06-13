@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.14",
+    "sw_version": "1.0.15",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -188,6 +188,15 @@ async def fetch_data(session, config_entry):
     combined_data = {}
     for info in infos:
         id = info["id"]
+        async with session.get(f"{API_URL}api/v1/plant/{id}/inverters?page=1&limit=10&status=-1&sn=&id={id}&type=-2", headers=headers) as resp:
+            inverter_data = await resp.json()
+            # Check the response status
+            if resp.status != 200:
+                raise UpdateFailed(f"Inverter request failed: {inverter_data}")
+            # Extract "sn" values from the inverter data
+            inverters_sn = inverter_data["data"]["infos"][0]["sn"] if inverter_data["data"]["infos"] else None
+            # Add the "sn" values to the combined_data
+            combined_data[f"inverters_{id}_sn"] = inverters_sn
         # Format dates
         if "updateAt" in info:
             updateAt_object = datetime.strptime(info["updateAt"], "%Y-%m-%dT%H:%M:%SZ")
@@ -198,7 +207,7 @@ async def fetch_data(session, config_entry):
 
         info = {k: str(v)[:255] for k, v in info.items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
         combined_data.update(info)
-
+        
         # Fetch additional data for each plant
         # Fetch energy flow data
         async with session.get(f"{API_URL}api/v1/plant/energy/{id}/flow", headers=headers) as resp:
