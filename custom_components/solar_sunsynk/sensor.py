@@ -17,7 +17,7 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.15",
+    "sw_version": "1.0.16",
 }
 UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
@@ -36,29 +36,49 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     await coordinator.async_config_entry_first_refresh()
     # Create device registry
     device_registry = hass.helpers.device_registry.async_get(hass)
-    device = device_registry.async_get_or_create(
+
+    # Create primary device
+    primary_device = device_registry.async_get_or_create(
         config_entry_id=config_entry.entry_id,
         **DEVICE_INFO,
+    )
+
+    # Create settings device
+    settings_device_info = DEVICE_INFO.copy()
+    settings_device_info["name"] += " Settings"
+    settings_device_info["identifiers"] = {(DOMAIN, "solar_sunsynk_settings")}
+    settings_device = device_registry.async_get_or_create(
+        config_entry_id=config_entry.entry_id,
+        **settings_device_info,
     )
     
     # Create sensor entities and add them
     entities = []
     for result_key in coordinator.data.keys():
-        entity = SolarSunSynkSensor(coordinator, result_key,device, coordinator.data.get("id"))
+        if result_key.startswith("settings_"):
+            identifier = "solar_sunsynk_settings"
+            device = settings_device
+        else:
+            identifier = "solar_sunsynk"
+            device = primary_device
+
+        entity = SolarSunSynkSensor(coordinator, result_key, device, coordinator.data.get("id"), identifier)
         entities.append(entity)
-    
+
     async_add_entities(entities)
+
 
 
 class SolarSunSynkSensor(SensorEntity):
     """Representation of a sensor entity for Solar Sunsynk data."""
 
-    def __init__(self, coordinator, result_key, device, id):
+    def __init__(self, coordinator, result_key, device, id, identifier):
         """Initialize the sensor."""
         self.coordinator = coordinator
         self.result_key = result_key
         self.device = device
         self.id = id
+        self.identifier = identifier
 
     @property
     def extra_state_attributes(self):
@@ -72,7 +92,7 @@ class SolarSunSynkSensor(SensorEntity):
     def device_info(self):
         """Return device information."""
         return {
-            "identifiers": {(DOMAIN, "solar_sunsynk")},
+            "identifiers": {(DOMAIN, self.identifier)},
             "name": self.device.name,
             "manufacturer": self.device.manufacturer,
             "model": self.device.model,
@@ -197,6 +217,18 @@ async def fetch_data(session, config_entry):
             inverters_sn = inverter_data["data"]["infos"][0]["sn"] if inverter_data["data"]["infos"] else None
             # Add the "sn" values to the combined_data
             combined_data[f"inverters_{id}_sn"] = inverters_sn
+            async with session.get(f"{API_URL}api/v1/common/setting/{inverters_sn}/read", headers=headers) as resp:
+                setting_data = await resp.json()
+                if resp.status != 200:
+                    raise UpdateFailed(f"setting request failed: {setting_data}")
+
+                # Extract settings from the data
+                for setting_key, setting_value in setting_data["data"].items():
+                    # Format the setting key to include the inverter serial number
+                    combined_key = f"settings_{inverters_sn}_{setting_key}"
+                    # Add the setting to the combined_data
+                    combined_data[combined_key] = str(setting_value)[:255]  # Ensure the value is a string and not exceeding 255 characters
+
         # Format dates
         if "updateAt" in info:
             updateAt_object = datetime.strptime(info["updateAt"], "%Y-%m-%dT%H:%M:%SZ")
