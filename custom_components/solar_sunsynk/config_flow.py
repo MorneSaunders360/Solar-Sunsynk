@@ -1,12 +1,7 @@
-import logging
-import requests
 import voluptuous as vol
 from homeassistant import config_entries
-
-DOMAIN = "solar_sunsynk"
-
-_LOGGER = logging.getLogger(__name__)
-
+from .sunsynkapi import sunsynk_api
+from .const import DOMAIN
 class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
@@ -25,7 +20,10 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not username or not password:
                 errors["base"] = "empty_credentials"
             else:
-                valid = await self._validate_credentials(username, password, region)
+                sunsynk = sunsynk_api(region,username,password, self.hass)
+                json_response = await sunsynk.authenticate(username, password)
+                if json_response.get('success') == True:
+                    valid = True
                 if valid:
                     return self.async_create_entry(title="Solar Sunsynk", data=user_input)
                 else:
@@ -42,38 +40,6 @@ class SolarSunsynkConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
-
-
-    async def _validate_credentials(self, username, password, region):
-        def check_credentials():
-            validAuth = False
-            try:
-                headers = {
-                    'Content-type': 'application/json',
-                    'Accept': 'application/json'
-                }
-
-                payload = {
-                    "username": username,
-                    "password": password,
-                    "grant_type": "password",
-                    "client_id": "csp-web"
-                }
-
-                if region == "Region 1":
-                    urlAuth = "https://pv.inteless.com/oauth/token"
-                elif region == "Region 2":
-                    urlAuth = "https://api.sunsynk.net/oauth/token"
-
-                responseAuth = requests.post(urlAuth, json=payload, headers=headers)
-                json_response = responseAuth.json()
-                if json_response.get('success') == True:
-                    validAuth = True
-                return validAuth
-            except Exception as e:
-                return validAuth
-
-        return await self.hass.async_add_executor_job(check_credentials)
 
 config_entries.HANDLERS.register(DOMAIN)(SolarSunsynkConfigFlow)
 

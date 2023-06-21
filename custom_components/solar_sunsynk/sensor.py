@@ -1,37 +1,23 @@
+
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.components.sensor import SensorEntity
 from functools import partial
 from datetime import timedelta
-import aiohttp
-import async_timeout
-import json
 import logging
-import time
-import re
-from datetime import datetime
+from .sunsynkapi import sunsynk_api
 # Constants
-DOMAIN = "solar_sunsynk"
+from .const import DOMAIN,UPDATE_INTERVAL,DEVICE_INFO
+from .coordinator import async_get_coordinator
 _LOGGER = logging.getLogger(__name__)
-DEVICE_INFO = {
-    "identifiers": {(DOMAIN, "solar_sunsynk")},
-    "name": "Solar Sunsynk",
-    "manufacturer": "MorneSaunders360",
-    "model": "Sunsynk API",
-    "sw_version": "1.0.16",
-}
-UPDATE_INTERVAL = 10
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up sensors from config entry."""
-    session = aiohttp.ClientSession()
     # Create the data update coordinator
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name="sensor",
-        update_method=partial(fetch_data, session, config_entry),
-        update_interval=timedelta(seconds=UPDATE_INTERVAL),
-    )
-    
+    USERNAME = config_entry.data["username"]
+    PASSWORD = config_entry.data["password"]
+    region = config_entry.data["region"]
+    sunsynk = sunsynk_api(region,USERNAME,PASSWORD, hass)
+
+    coordinator = await async_get_coordinator(hass, config_entry)
     # Fetch initial data
     await coordinator.async_config_entry_first_refresh()
     # Create device registry
@@ -162,104 +148,4 @@ class SolarSunSynkSensor(SensorEntity):
     async def async_update(self):
         """Update the sensor."""
         await self.coordinator.async_request_refresh()
-
-async def get_token(session, USERNAME, PASSWORD, API_URL):
-    headers = {
-        'Content-type':'application/json', 
-        'Accept':'application/json'
-    }
-    payload = {
-        "username": USERNAME,
-        "password": PASSWORD,
-        "grant_type":"password",
-        "client_id":"csp-web"
-    }
-    try:
-        async with session.post(API_URL+"oauth/token", json=payload, headers=headers) as resp:
-            responseAuth = await resp.json()
-        token = responseAuth["data"]["access_token"]
-        expires_in = responseAuth["data"]["expires_in"]
-        expiration_time = time.time() + expires_in
-        return token, expiration_time
-    except Exception as e:
-        _LOGGER.error("Failed to get token: %s", e)
-        return None, None
-
-async def fetch_data(session, config_entry):
-    USERNAME = config_entry.data["username"]
-    PASSWORD = config_entry.data["password"]
-    region = config_entry.data["region"]
-    if region == "Region 1":
-        API_URL = "https://pv.inteless.com/"
-    elif region == "Region 2":
-        API_URL = "https://api.sunsynk.net/"
-    token, expiration_time = await get_token(session, USERNAME, PASSWORD, API_URL)
-    if time.time() > expiration_time:
-        token, expiration_time = await get_token(session, USERNAME, PASSWORD, API_URL)
-    headers = {"Authorization": f"Bearer {token}"}
-    # Fetch plant data
-    async with session.get(f"{API_URL}api/v1/plants?page=1&limit=10&name=&status=", headers=headers) as resp:
-        data = await resp.json()
-        if resp.status != 200:
-            raise UpdateFailed(f"Request failed: {data}")
-        infos = data["data"]["infos"]
-    
-    # Combine all the plant data into a single dictionary
-    combined_data = {}
-    for info in infos:
-        id = info["id"]
-        async with session.get(f"{API_URL}api/v1/plant/{id}/inverters?page=1&limit=10&status=-1&sn=&id={id}&type=-2", headers=headers) as resp:
-            inverter_data = await resp.json()
-            # Check the response status
-            if resp.status != 200:
-                raise UpdateFailed(f"Inverter request failed: {inverter_data}")
-            # Extract "sn" values from the inverter data
-            inverters_sn = inverter_data["data"]["infos"][0]["sn"] if inverter_data["data"]["infos"] else None
-            # Add the "sn" values to the combined_data
-            combined_data[f"inverters_{id}_sn"] = inverters_sn
-            async with session.get(f"{API_URL}api/v1/common/setting/{inverters_sn}/read", headers=headers) as resp:
-                setting_data = await resp.json()
-                if resp.status != 200:
-                    raise UpdateFailed(f"setting request failed: {setting_data}")
-
-                # Extract settings from the data
-                for setting_key, setting_value in setting_data["data"].items():
-                    # Format the setting key to include the inverter serial number
-                    combined_key = f"settings_{inverters_sn}_{setting_key}"
-                    # Add the setting to the combined_data
-                    combined_data[combined_key] = str(setting_value)[:255]  # Ensure the value is a string and not exceeding 255 characters
-
-        # Format dates
-        if "updateAt" in info:
-            updateAt_object = datetime.strptime(info["updateAt"], "%Y-%m-%dT%H:%M:%SZ")
-            info["updateAt"] = updateAt_object.strftime("%Y/%m/%d %H:%M")
-        if "createAt" in info:
-            createAt_object = datetime.strptime(info["createAt"], "%Y-%m-%dT%H:%M:%S.%f%z")
-            info["createAt"] = createAt_object.strftime("%Y/%m/%d %H:%M")
-
-        info = {k: str(v)[:255] for k, v in info.items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
-        combined_data.update(info)
-        
-        # Fetch additional data for each plant
-        # Fetch energy flow data
-        async with session.get(f"{API_URL}api/v1/plant/energy/{id}/flow", headers=headers) as resp:
-            energy_flow_data = await resp.json()
-            energy_flow_data = {k: str(v)[:255] for k, v in energy_flow_data["data"].items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
-            combined_data.update(energy_flow_data)
-
-        # Fetch realtime data
-        async with session.get(f"{API_URL}api/v1/plant/{id}/realtime?id={id}", headers=headers) as resp:
-            realtime_data = await resp.json()
-            # Format dates
-            if "updateAt" in realtime_data["data"]:
-                updateAt_object = datetime.strptime(realtime_data["data"]["updateAt"], "%Y-%m-%dT%H:%M:%SZ")
-                realtime_data["data"]["updateAt"] = updateAt_object.strftime("%Y/%m/%d %H:%M")
-
-            realtime_data = {
-                k: v["code"] if k == "currency" else str(v)[:255] 
-                for k, v in realtime_data["data"].items() 
-                if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]
-            }
-            combined_data.update(realtime_data)
-    return combined_data
 
