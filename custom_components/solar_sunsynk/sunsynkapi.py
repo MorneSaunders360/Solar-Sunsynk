@@ -1,25 +1,31 @@
 
 from homeassistant.core import HomeAssistant
+from datetime import datetime, timedelta
 import requests
 import json
 from functools import partial
 import logging
 _LOGGER = logging.getLogger(__name__)
 class sunsynk_api:
-    def __init__(self, region,username, password, hass: HomeAssistant):
+    def __init__(self, region, username, password, hass: HomeAssistant):
         self.region = region
         self.hass = hass
         self.username = username
         self.password = password
-        
-    async def request(self, method, path, body,autoAuth):
+        self.token = None
+        self.token_expires = datetime.now()
+
+    async def request(self, method, path, body, autoAuth):
         if autoAuth:
-            responseAuth = await self.authenticate(self.username, self.password)
-            token = responseAuth["data"]["access_token"]
+            if not self.token or self.token_expires <= datetime.now():
+                responseAuth = await self.authenticate(self.username, self.password)
+                self.token = responseAuth["data"]["access_token"]
+                # Assuming the token expires in 1 hour
+                self.token_expires = datetime.now() + timedelta(hours=1)
             headers = {
                 'Content-Type': 'application/json',
-                "Authorization": f"Bearer {token}"
-                }
+                "Authorization": f"Bearer {self.token}"
+            }
         else:
             headers = {
                 'Content-Type': 'application/json',

@@ -65,5 +65,5 @@ DEVICE_INFO = {
     "name": "Solar Sunsynk",
     "manufacturer": "MorneSaunders360",
     "model": "Sunsynk API",
-    "sw_version": "1.0.18",
+    "sw_version": "1.0.19",
 }
