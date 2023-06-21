@@ -28,8 +28,7 @@ def setup(hass: core.HomeAssistant, entry: config_entries.ConfigEntry):
         for key in call.data.keys():
             new_dict[key] = call.data[key]
         # Prepare the payload
-        payload = json.dumps(new_dict)
-        response = await sunsynk.set_settings(sn, payload)
+        response = await sunsynk.set_settings(sn, new_dict)
         if response.get('success') == True:
             # Request successful
             return True
