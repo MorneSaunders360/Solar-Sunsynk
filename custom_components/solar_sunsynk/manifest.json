@@ -6,7 +6,7 @@
     "requirements": ["requests"],
     "config_flow": true,
     "iot_class": "cloud_polling",
-    "version": "1.0.19",
+    "version": "1.0.20",
     "codeowners": ["@MorneSaunders360"]
   }
   

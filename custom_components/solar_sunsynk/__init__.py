@@ -2,9 +2,6 @@ from homeassistant import config_entries, core
 import logging
 from .const import SetSolarSettingsSchema,DOMAIN
 from .sunsynkapi import sunsynk_api
-import json
-_LOGGER = logging.getLogger(__name__)
-
 async def async_setup(hass, config):
     return True
 

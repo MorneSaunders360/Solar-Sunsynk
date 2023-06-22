@@ -1,22 +1,10 @@
-
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.components.sensor import SensorEntity
-from functools import partial
-from datetime import timedelta
-import logging
-from .sunsynkapi import sunsynk_api
 # Constants
-from .const import DOMAIN,UPDATE_INTERVAL,DEVICE_INFO
+from .const import DOMAIN,DEVICE_INFO
 from .coordinator import async_get_coordinator
-_LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass, config_entry, async_add_entities):
     """Set up sensors from config entry."""
     # Create the data update coordinator
-    USERNAME = config_entry.data["username"]
-    PASSWORD = config_entry.data["password"]
-    region = config_entry.data["region"]
-    sunsynk = sunsynk_api(region,USERNAME,PASSWORD, hass)
-
     coordinator = await async_get_coordinator(hass, config_entry)
     # Fetch initial data
     await coordinator.async_config_entry_first_refresh()
