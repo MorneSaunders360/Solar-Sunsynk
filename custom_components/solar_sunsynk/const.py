@@ -13,7 +13,7 @@ PLATFORMS = [Platform.SENSOR]
 SCAN_INTERVAL = timedelta(seconds=30)
 
 NAME = "Solar Sunsynk"
-ISSUE_URL = "https://github.com/CharlesGillanders/homeassistant-Sunsynk/issues"
+ISSUE_URL = "https://github.com/MorneSaunders360/Solar-Sunsynk/issues"
 
 STARTUP_MESSAGE = f"""
 -------------------------------------------------------------------
