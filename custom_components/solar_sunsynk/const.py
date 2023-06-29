@@ -1,8 +1,28 @@
+"""Constants for the Sunsynk integration."""
+
+from datetime import timedelta
+
+from homeassistant.const import Platform
+
 import voluptuous as vol
+
 import homeassistant.helpers.config_validation as cv
 
 DOMAIN = "solar_sunsynk"
-UPDATE_INTERVAL = 30
+PLATFORMS = [Platform.SENSOR]
+SCAN_INTERVAL = timedelta(seconds=30)
+
+NAME = "Solar Sunsynk"
+ISSUE_URL = "https://github.com/CharlesGillanders/homeassistant-Sunsynk/issues"
+
+STARTUP_MESSAGE = f"""
+-------------------------------------------------------------------
+{NAME}
+This is a custom integration!
+If you have any issues with this you need to open an issue here:
+{ISSUE_URL}
+-------------------------------------------------------------------
+"""
 SetSolarSettingsSchema = vol.Schema(
     {
         vol.Required("sn"): cv.string,
@@ -60,10 +80,3 @@ SetSolarSettingsSchema = vol.Schema(
         vol.Optional("genTime6on"): cv.boolean,
     }
 )
-DEVICE_INFO = {
-    "identifiers": {(DOMAIN, "solar_sunsynk")},
-    "name": "Solar Sunsynk",
-    "manufacturer": "MorneSaunders360",
-    "model": "Sunsynk API",
-    "sw_version": "1.0.20",
-}

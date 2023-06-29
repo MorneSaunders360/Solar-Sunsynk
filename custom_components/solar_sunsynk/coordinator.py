@@ -1,80 +1,71 @@
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
-from functools import partial
-from datetime import timedelta,datetime
+"""Coordinator for Sunsynk integration."""
+import datetime
+import json
 import logging
+
+import aiohttp
 from .sunsynkapi import sunsynk_api
-from .const import UPDATE_INTERVAL
 
-_LOGGER = logging.getLogger(__name__)
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-async def async_get_coordinator(hass, config_entry):
-    """Set up the DataUpdateCoordinator."""
-    USERNAME = config_entry.data["username"]
-    PASSWORD = config_entry.data["password"]
-    region = config_entry.data["region"]
-    sunsynk = sunsynk_api(region,USERNAME,PASSWORD, hass)
+from .const import DOMAIN, SCAN_INTERVAL
 
-    coordinator = DataUpdateCoordinator(
-        hass,
-        _LOGGER,
-        name="Sunsynk",
-        update_method=partial(fetch_data, sunsynk),
-        update_interval=timedelta(seconds=UPDATE_INTERVAL),
-    )
-    return coordinator
+_LOGGER: logging.Logger = logging.getLogger(__package__)
 
-async def fetch_data(sunsynk):
 
-    # Fetch plant data
-    data = await sunsynk.get_plant_data()
-    infos = data["data"]["infos"]
-    
-    # Combine all the plant data into a single dictionary
-    combined_data = {}
-    for info in infos:
-        id = info["id"]
-        inverter_data = await sunsynk.get_inverters_data(id)
-        # Extract "sn" values from the inverter data
-        inverters_sn = inverter_data["data"]["infos"][0]["sn"] if inverter_data["data"]["infos"] else None
-        # Add the "sn" values to the combined_data
-        combined_data[f"inverters_{id}_sn"] = inverters_sn
-        setting_data = await sunsynk.get_settings(inverters_sn)
-        # Extract settings from the data
-        for setting_key, setting_value in setting_data["data"].items():
-            # Format the setting key to include the inverter serial number
-            combined_key = f"settings_{inverters_sn}_{setting_key}"
-            # Add the setting to the combined_data
-            combined_data[combined_key] = str(setting_value)[:255]  # Ensure the value is a string and not exceeding 255 characters
+class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
+    """Class to manage fetching data from the API."""
 
-        # Format dates
-        if "updateAt" in info:
-            updateAt_object = datetime.strptime(info["updateAt"], "%Y-%m-%dT%H:%M:%SZ")
-            info["updateAt"] = updateAt_object.strftime("%Y/%m/%d %H:%M")
-        if "createAt" in info:
-            createAt_object = datetime.strptime(info["createAt"], "%Y-%m-%dT%H:%M:%S.%f%z")
-            info["createAt"] = createAt_object.strftime("%Y/%m/%d %H:%M")
+    def __init__(self, hass: HomeAssistant, client: sunsynk_api) -> None:
+        """Initialize."""
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        self.api = client
+        self.update_method = self._async_update_data
+        self.data: dict[str, dict[str, float]] = {}
 
-        info = {k: str(v)[:255] for k, v in info.items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
-        combined_data.update(info)
-        
-        # Fetch additional data for each plant
-        # Fetch energy flow data
-        energy_flow_data = await sunsynk.get_energy_flow_data(id)
-        energy_flow_data = {k: str(v)[:255] for k, v in energy_flow_data["data"].items() if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]}
-        combined_data.update(energy_flow_data)
+    async def _async_update_data(self):
+        """Update data via library."""
+        try:
+            jsondata = await self.api.get_all_data()
+            for invertor in jsondata:
+                inverterdata: dict[str, any] = {}
+                
+                _inverter_data = jsondata[invertor]["inverter_data"],
+                _inverter_load_data = jsondata[invertor]["inverter_load_data"],
+                _inverter_grid_data = jsondata[invertor]["inverter_grid_data"],
+                _inverter_battery_data = jsondata[invertor]["inverter_battery_data"],
+                _inverter_input_data = jsondata[invertor]["inverter_input_data"],
+                _inverter_output_data = jsondata[invertor]["inverter_output_data"],
+                inverterdata.update({"Model": _inverter_data[0].get("model")})
+                # statistics
+                _ppv1 = _inverter_input_data[0].get("pvIV",{})[0].get("ppv",0)
+                _ppv2 = _inverter_input_data[0].get("pvIV",{})[1].get("ppv",0)
+                Solar_to_Load = (_inverter_load_data[0].get("dailyUsed",0)) - (_inverter_input_data[0].get("etoday",0))
+                Grid_to_Load = (_inverter_load_data[0].get("dailyUsed",0)) - float(_inverter_grid_data[0].get("etodayFrom",0))
+                inverterdata.update({"Solar Production": _inverter_input_data[0].get("etoday", 0)})
+                inverterdata.update({"Solar to Battery":  _inverter_battery_data[0].get("etodayChg", 0)})
+                inverterdata.update({"Solar to Grid": _inverter_grid_data[0].get("etodayTo", 0)})
+                inverterdata.update({"Solar to Load": Solar_to_Load})
+                inverterdata.update({"Total Load": _inverter_load_data[0].get("dailyUsed",0)})
+                inverterdata.update({"Grid to Load": Grid_to_Load})
+                #inverterdata.update({"Grid to Battery": _stats.get("EGridCharge")})
+                inverterdata.update({"State of Charge": _inverter_battery_data[0].get("soc", 0)})
+                inverterdata.update({"Charge": _inverter_battery_data[0].get("etodayChg", 0)})
+                inverterdata.update({"Discharge": _inverter_battery_data[0].get("etodayDischg", 0)})
+                inverterdata.update({"Instantaneous Grid I/O": _inverter_grid_data[0].get("power", 0)})
+                inverterdata.update({"Instantaneous Generation": _inverter_input_data[0].get("power", 0)})
+                inverterdata.update({"Instantaneous Battery SOC": _inverter_battery_data[0].get("bmsSoc", 0)})
+                inverterdata.update({"Instantaneous Battery I/O": _inverter_battery_data[0].get("power", 0)})
+                inverterdata.update({"Instantaneous Load": _inverter_load_data[0].get("power", 0)})
+                inverterdata.update({"Instantaneous PPV1": _ppv1})
+                inverterdata.update({"Instantaneous PPV2": _ppv2})
+                self.data.update({invertor: inverterdata})
 
-        # Fetch realtime data
-        realtime_data = await sunsynk.get_realtime_data(id)
-        # Format dates
-        if "updateAt" in realtime_data["data"]:
-            updateAt_object = datetime.strptime(realtime_data["data"]["updateAt"], "%Y-%m-%dT%H:%M:%SZ")
-            realtime_data["data"]["updateAt"] = updateAt_object.strftime("%Y/%m/%d %H:%M")
 
-        realtime_data = {
-            k: v["code"] if k == "currency" else str(v)[:255] 
-            for k, v in realtime_data["data"].items() 
-            if v is not None and k not in ["plantPermission", "custCode", "meterCode", "masterId", "type", "status"]
-        }
-        combined_data.update(realtime_data)
-    return combined_data
-
+            return self.data
+        except (
+            aiohttp.client_exceptions.ClientConnectorError,
+            aiohttp.ClientResponseError,
+        ) as error:
+            raise UpdateFailed(error) from error

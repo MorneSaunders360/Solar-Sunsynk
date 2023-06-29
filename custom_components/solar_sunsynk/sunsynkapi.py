@@ -53,14 +53,61 @@ class sunsynk_api:
 
         return response.json()
             
-    async def get_plant_data(self):
-        return await self.request('GET', f'api/v1/plants?page=1&limit=10&name=&status=', None,True)        
     async def get_inverters_data(self,id):
         return await self.request('GET', f'api/v1/plant/{id}/inverters?page=1&limit=10&status=-1&sn=&id={id}&type=-2', None,True)        
+    async def get_inverter_data(self,id):
+        return await self.request('GET', f'api/v1/inverter/{id}', None,True)        
+    async def get_inverter_load_data(self,id):
+        return await self.request('GET', f'api/v1/inverter/load/{id}/realtime?sn={id}&lan=en', None,True)        
+    async def get_inverter_grid_data(self,id):
+        return await self.request('GET', f'api/v1/inverter/grid/{id}/realtime?sn={id}&lan=en', None,True)        
+    async def get_inverter_battery_data(self,id):
+        return await self.request('GET', f'api/v1/inverter/battery/{id}/realtime?sn={id}&lan=en', None,True)        
+    async def get_inverter_input_data(self,id):
+        return await self.request('GET', f'api/v1/inverter/{id}/realtime/input', None,True)        
+    async def get_inverter_output_data(self,id):
+        return await self.request('GET', f'api/v1/inverter/{id}/realtime/output', None,True)        
+    # async def get_inverter_load_data(self,id):
+    #     now = datetime.today().strftime('%Y-%m-%d')
+    #     return await self.request('GET', f'api/v1/inverter/grid/{id}/day?lan=en&date={now}&column=pac', None,True)        
+    
+    async def get_plant_data(self):
+        return await self.request('GET', f'api/v1/plants?page=1&limit=10&name=&status=', None,True)        
     async def get_energy_flow_data(self,id):
         return await self.request('GET', f'api/v1/plant/energy/{id}/flow', None,True)        
     async def get_realtime_data(self,id):
-        return await self.request('GET', f'api/v1/plant/{id}/realtime?id={id}', None,True)        
+        return await self.request('GET', f'api/v1/plant/{id}/realtime?id={id}', None,True) 
+    async def get_all_data(self):
+        all_data = {}
+
+        # Get plant data
+        plant_data = await self.get_plant_data()
+        # Assuming that plant_data is a JSON object with a key "plants" that contains a list of plants
+        # Each plant is assumed to be a JSON object with a key "id" that contains the plant ID
+        for plant in plant_data["data"]["infos"]:
+            plant_id = plant["id"]
+            inverterdata = await self.get_inverters_data(plant_id)
+            for inverter in inverterdata["data"]["infos"]:
+                inverterId = inverter["sn"]
+                # Get energy flow data for this plant
+                inverter_data = await self.get_inverter_data(inverterId)
+                inverter_load_data = await self.get_inverter_load_data(inverterId)
+                inverter_grid_data = await self.get_inverter_grid_data(inverterId)
+                inverter_battery_data = await self.get_inverter_battery_data(inverterId)
+                inverter_input_data = await self.get_inverter_input_data(inverterId)
+                inverter_output_data = await self.get_inverter_output_data(inverterId)
+                plant_sn_id = f"sunsynk_{plant_id}_{inverterId}"  
+                # Add data to all_data
+                all_data[plant_sn_id] = {
+                    "inverter_data": inverter_data["data"],
+                    "inverter_load_data": inverter_load_data["data"],
+                    "inverter_grid_data": inverter_grid_data["data"],
+                    "inverter_battery_data": inverter_battery_data["data"],
+                    "inverter_input_data":inverter_input_data["data"],
+                    "inverter_output_data": inverter_output_data["data"],
+                }
+        return all_data
+
     async def get_settings(self,sn):
         return await self.request('GET', f'api/v1/common/setting/{sn}/read', None,True)
     async def set_settings(self, sn,setting_data):

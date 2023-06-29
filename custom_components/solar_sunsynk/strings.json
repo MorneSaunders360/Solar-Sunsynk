@@ -1,22 +1,21 @@
 {
   "config": {
-    "title": "Connect to your Solar Sunsynk",
-    "step": {
-      "user": {
-        "title": "Please enter your credentials",
-        "data": {
-          "username": "Username",
-          "password": "Password",
-          "region": "Region"
-        }
-      }
-    },
+    "flow_title": "Solar Sunsynk",
     "error": {
-      "empty_credentials": "The username and password fields cannot be empty.",
-      "invalid_auth": "Failed to authenticate with Solar Sunsynk. Please check your username and password."
+        "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
+        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
     },
-    "abort": {
-      "single_instance_allowed": "Only a single instance of the Solar Sunsynk integration is allowed."
+    "step": {
+        "user": {
+            "title": "Set up Solar Sunsynk ",
+            "description": "Please provide your credentials for logging into the Solar Sunsynk app/website",
+            "data": {
+                "username": "[%key:common::config_flow::data::username%]",
+                "password": "[%key:common::config_flow::data::password%]",
+                "region": "[%key:common::config_flow::data::region%]"
+            }
+        }
     }
   }
-}
+} 
