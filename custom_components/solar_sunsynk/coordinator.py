@@ -40,8 +40,13 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 # statistics
                 _ppv1 = _inverter_input_data[0].get("pvIV",{})[0].get("ppv",0)
                 _ppv2 = _inverter_input_data[0].get("pvIV",{})[1].get("ppv",0)
-                Solar_to_Load = (_inverter_load_data[0].get("dailyUsed",0)) - (_inverter_input_data[0].get("etoday",0))
-                Grid_to_Load = (_inverter_load_data[0].get("dailyUsed",0)) - float(_inverter_grid_data[0].get("etodayFrom",0))
+                etoday = float(_inverter_input_data[0].get("etoday",0))
+                if etoday == 0:
+                    Solar_to_Load = 0
+                else:
+                    dailyUsed = float(_inverter_load_data[0].get("dailyUsed",0))
+                    Solar_to_Load = dailyUsed - etoday
+                Grid_to_Load = _inverter_grid_data[0].get("etodayFrom",0)
                 AverageCap = ((float(_inverter_settings_data[0].get("cap1")) + float(_inverter_settings_data[0].get("cap2"))+float(_inverter_settings_data[0].get("cap3"))+float(_inverter_settings_data[0].get("cap4"))+float(_inverter_settings_data[0].get("cap5"))+float(_inverter_settings_data[0].get("cap6")))/6)
                 inverterdata.update({"Solar Production": _inverter_input_data[0].get("etoday", 0)})
                 inverterdata.update({"Solar to Battery":  _inverter_battery_data[0].get("etodayChg", 0)})
