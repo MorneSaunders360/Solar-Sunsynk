@@ -8,5 +8,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/MorneSaunders360/Solar-Sunsynk/issues",
   "requirements": ["requests"],
-  "version": "0.0.1"
+  "version": "0.0.2"
 }

@@ -96,6 +96,7 @@ class sunsynk_api:
                 inverter_battery_data = await self.get_inverter_battery_data(inverterId)
                 inverter_input_data = await self.get_inverter_input_data(inverterId)
                 inverter_output_data = await self.get_inverter_output_data(inverterId)
+                inverter_settings = await self.get_settings(inverterId)
                 plant_sn_id = f"sunsynk_{plant_id}_{inverterId}"  
                 # Add data to all_data
                 all_data[plant_sn_id] = {
@@ -105,6 +106,7 @@ class sunsynk_api:
                     "inverter_battery_data": inverter_battery_data["data"],
                     "inverter_input_data":inverter_input_data["data"],
                     "inverter_output_data": inverter_output_data["data"],
+                    "inverter_settings_data": inverter_settings["data"],
                 }
         return all_data
 
