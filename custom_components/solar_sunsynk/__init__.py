@@ -1,16 +1,11 @@
 """The Sunsynk integration."""
 from __future__ import annotations
 
-import voluptuous as vol
-
 from .sunsynkapi import sunsynk_api
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, CONF_REGION
 from homeassistant.core import HomeAssistant
-
-import homeassistant.helpers.config_validation as cv
-
 from .const import DOMAIN, PLATFORMS,SetSolarSettingsSchema
 from .coordinator import SunsynkDataUpdateCoordinator
 

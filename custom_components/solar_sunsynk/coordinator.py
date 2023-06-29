@@ -1,6 +1,4 @@
 """Coordinator for Sunsynk integration."""
-import datetime
-import json
 import logging
 
 import aiohttp
