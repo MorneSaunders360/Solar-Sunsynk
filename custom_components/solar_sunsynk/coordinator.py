@@ -35,12 +35,14 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 _inverter_battery_data = jsondata[invertor]["inverter_battery_data"],
                 _inverter_input_data = jsondata[invertor]["inverter_input_data"],
                 _inverter_output_data = jsondata[invertor]["inverter_output_data"],
+                _inverter_settings_data = jsondata[invertor]["inverter_settings_data"],
                 inverterdata.update({"Model": _inverter_data[0].get("model")})
                 # statistics
                 _ppv1 = _inverter_input_data[0].get("pvIV",{})[0].get("ppv",0)
                 _ppv2 = _inverter_input_data[0].get("pvIV",{})[1].get("ppv",0)
                 Solar_to_Load = (_inverter_load_data[0].get("dailyUsed",0)) - (_inverter_input_data[0].get("etoday",0))
                 Grid_to_Load = (_inverter_load_data[0].get("dailyUsed",0)) - float(_inverter_grid_data[0].get("etodayFrom",0))
+                AverageCap = ((float(_inverter_settings_data[0].get("cap1")) + float(_inverter_settings_data[0].get("cap2"))+float(_inverter_settings_data[0].get("cap3"))+float(_inverter_settings_data[0].get("cap4"))+float(_inverter_settings_data[0].get("cap5"))+float(_inverter_settings_data[0].get("cap6")))/6)
                 inverterdata.update({"Solar Production": _inverter_input_data[0].get("etoday", 0)})
                 inverterdata.update({"Solar to Battery":  _inverter_battery_data[0].get("etodayChg", 0)})
                 inverterdata.update({"Solar to Grid": _inverter_grid_data[0].get("etodayTo", 0)})
@@ -58,6 +60,7 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 inverterdata.update({"Instantaneous Load": _inverter_load_data[0].get("vip",{})[0].get("power", 0)})
                 inverterdata.update({"Instantaneous PPV1": _ppv1})
                 inverterdata.update({"Instantaneous PPV2": _ppv2})
+                inverterdata.update({"Setting - Average State of Charge Capacity": AverageCap})
                 self.data.update({invertor: inverterdata})
 
 

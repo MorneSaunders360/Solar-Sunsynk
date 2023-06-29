@@ -73,6 +73,13 @@ SENSOR_DESCRIPTIONS: List[SunsynkSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SunsynkSensorDescription(
+        key=SunsynkNames.SettingAverageCap,
+        name="Setting - Average State of Charge Capacity",
+        native_unit_of_measurement=PERCENTAGE,
+        device_class=SensorDeviceClass.BATTERY,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    SunsynkSensorDescription(
         key=SunsynkNames.Charge,
         name="Charge",
         native_unit_of_measurement=ENERGY_KILO_WATT_HOUR,
