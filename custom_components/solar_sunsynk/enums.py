@@ -14,6 +14,7 @@ class SunsynkNames(str, Enum):
     GridToLoad = "Grid to Load"
     GridToBattery = "Grid to Battery"
     StateOfCharge = "State of Charge"
+    SettingAverageCap = "Setting - Average Cap"
     Charge = "Charge"
     Discharge = "Discharge"
     EVCharger = "EV Charger"
