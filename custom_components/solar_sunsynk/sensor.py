@@ -94,13 +94,6 @@ SENSOR_DESCRIPTIONS: List[SunsynkSensorDescription] = [
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
         SunsynkSensorDescription(
-        key=SunsynkNames.GridIOL1,
-        name="Instantaneous Grid I/O L1",
-        native_unit_of_measurement=POWER_WATT,
-        device_class=SensorDeviceClass.POWER,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-        SunsynkSensorDescription(
         key=SunsynkNames.GridIOTotal,
         name="Instantaneous Grid I/O Total",
         native_unit_of_measurement=POWER_WATT,
