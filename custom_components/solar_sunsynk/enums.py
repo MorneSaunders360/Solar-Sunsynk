@@ -1,6 +1,12 @@
 """Parent class for SunsynkNames enum."""
 from enum import Enum, unique
 
+@unique
+class SunsynkApiNames(str, Enum):
+    """Device names used by Sunsynk."""
+
+    Region1 = "Region 1"
+    Region2 = "Region 2"
 
 @unique
 class SunsynkNames(str, Enum):
