@@ -8,11 +8,12 @@ from functools import partial
 import logging
 _LOGGER = logging.getLogger(__name__)
 class sunsynk_api:
-    def __init__(self, region, username, password, hass: HomeAssistant):
+    def __init__(self, region, username, password,scan_interval, hass: HomeAssistant):
         self.region = region
         self.hass = hass
         self.username = username
         self.password = password
+        self.scan_interval = scan_interval
         self.token = None
         self.token_expires = datetime.now()
 

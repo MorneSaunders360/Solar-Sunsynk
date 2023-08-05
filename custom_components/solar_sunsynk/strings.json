@@ -1,21 +1,26 @@
 {
-  "config": {
-    "flow_title": "Solar Sunsynk",
-    "error": {
-        "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
-        "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
-        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
-    },
-    "step": {
-        "user": {
-            "title": "Set up Solar Sunsynk ",
-            "description": "Please provide your credentials for logging into the Solar Sunsynk app/website",
-            "data": {
-                "username": "[%key:common::config_flow::data::username%]",
-                "password": "[%key:common::config_flow::data::password%]",
-                "region": "[%key:common::config_flow::data::region%]"
+    "config": {
+        "flow_title": "Solar Sunsynk",
+        "error": {
+            "already_configured": "[%key:common::config_flow::abort::already_configured_account%]",
+            "invalid_auth": "[%key:common::config_flow::error::invalid_auth%]",
+            "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
+        },
+        "step": {
+            "user": {
+                "title": "Set up Solar Sunsynk ",
+                "description": "Please provide your credentials for logging into the Solar Sunsynk app/website",
+                "data": {
+                    "username": "[%key:common::config_flow::data::username%]",
+                    "password": "[%key:common::config_flow::data::password%]",
+                    "scan_interval": "[%key:common::config_flow::data::scan_interval%]",
+                    "region": "[%key:common::config_flow::data::region%]"
+                }
+            },
+            "reauth_confirm": {
+                "title": "Re-authenticate",
+                "description": "Please provide your credentials for Solar Sunsynk"
             }
         }
     }
-  }
-} 
+}

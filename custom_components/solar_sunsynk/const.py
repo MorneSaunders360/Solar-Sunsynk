@@ -10,7 +10,6 @@ import homeassistant.helpers.config_validation as cv
 
 DOMAIN = "solar_sunsynk"
 PLATFORMS = [Platform.SENSOR]
-SCAN_INTERVAL = timedelta(seconds=10)
 
 NAME = "Solar Sunsynk"
 ISSUE_URL = "https://github.com/MorneSaunders360/Solar-Sunsynk/issues"

@@ -3,11 +3,11 @@ import logging
 
 import aiohttp
 from .sunsynkapi import sunsynk_api
-
+from datetime import timedelta
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, SCAN_INTERVAL
+from .const import DOMAIN
 
 _LOGGER: logging.Logger = logging.getLogger(__package__)
 
@@ -17,7 +17,7 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass: HomeAssistant, client: sunsynk_api) -> None:
         """Initialize."""
-        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=SCAN_INTERVAL)
+        super().__init__(hass, _LOGGER, name=DOMAIN, update_interval=timedelta(seconds=client.scan_interval))
         self.api = client
         self.update_method = self._async_update_data
         self.data: dict[str, dict[str, float]] = {}
@@ -28,7 +28,7 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
             jsondata = await self.api.get_all_data()
             for invertor in jsondata:
                 inverterdata: dict[str, any] = {}
-                
+                _LOGGER.info(self.api.scan_interval)
                 _inverter_data = jsondata[invertor]["inverter_data"],
                 _inverter_load_data = jsondata[invertor]["inverter_load_data"],
                 _inverter_grid_data = jsondata[invertor]["inverter_grid_data"],
