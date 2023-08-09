@@ -28,7 +28,6 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
             jsondata = await self.api.get_all_data()
             for invertor in jsondata:
                 inverterdata: dict[str, any] = {}
-                _LOGGER.info(self.api.scan_interval)
                 _inverter_data = jsondata[invertor]["inverter_data"],
                 _inverter_load_data = jsondata[invertor]["inverter_load_data"],
                 _inverter_grid_data = jsondata[invertor]["inverter_grid_data"],
