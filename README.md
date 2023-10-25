@@ -29,8 +29,9 @@ A Home Assistant integration to track your Sunsynk solar system.
 
 # Service Usage
 1. To monitor your system, use the provided sensors in your Home Assistant dashboard.
-2. To adjust system settings, call the `solar_sunsynk.set_solar_settings` service with the desired parameters. For example:
-
+2. Please guide for mapping service to sunsynk front end
+https://github.com/MorneSaunders360/Solar-Sunsynk/blob/main/ServiceGuide.md
+3. To adjust system settings, call the `solar_sunsynk.set_solar_settings` service with the desired parameters. For example:
 ```yaml
 service: solar_sunsynk.set_solar_settings
 data:
