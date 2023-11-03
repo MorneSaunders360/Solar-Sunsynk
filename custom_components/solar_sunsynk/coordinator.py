@@ -47,7 +47,11 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                     if etoday == 0:
                         Solar_to_Load = 0
                     else:
-                        dailyUsed = float(_inverter_load_data[0].get("dailyUsed",0))
+                        if _inverter_load_data[0].get("dailyUsed",0)!=None:
+                            dailyUsed = float(_inverter_load_data[0].get("dailyUsed",0))
+                        else:
+                            dailyUsed = 0
+
                         Solar_to_Load = dailyUsed - etoday
                     Grid_to_Load = _inverter_grid_data[0].get("etodayFrom",0)
                     AverageCap = ((float(_inverter_settings_data[0].get("cap1")) + float(_inverter_settings_data[0].get("cap2"))+float(_inverter_settings_data[0].get("cap3"))+float(_inverter_settings_data[0].get("cap4"))+float(_inverter_settings_data[0].get("cap5"))+float(_inverter_settings_data[0].get("cap6")))/6)
