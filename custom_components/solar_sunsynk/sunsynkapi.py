@@ -8,8 +8,7 @@ from functools import partial
 import logging
 _LOGGER = logging.getLogger(__name__)
 class sunsynk_api:
-    def __init__(self, region, username, password,scan_interval, hass: HomeAssistant):
-        self.region = region
+    def __init__(self, username, password,scan_interval, hass: HomeAssistant):
         self.hass = hass
         self.username = username
         self.password = password
@@ -32,11 +31,8 @@ class sunsynk_api:
             headers = {
                 'Content-Type': 'application/json',
             }
-            
-        if self.region == SunsynkApiNames.Region1:
-            host = 'https://pv.inteless.com/'
-        elif self.region == SunsynkApiNames.Region2:
-            host = 'https://api.sunsynk.net/'
+        
+        host = 'https://api.sunsynk.net/'    
         url = host + path
         response = await self.hass.async_add_executor_job(
             partial(self._send_request, method, url, headers, body)
@@ -48,9 +44,11 @@ class sunsynk_api:
             with requests.Session() as s:
                 s.headers = headers
                 if body:
-                    response = s.request(method, url, data=json.dumps(body))
+                    # Added verify=False to disable SSL verification
+                    response = s.request(method, url, data=json.dumps(body), verify=False)
                 else:
-                    response = s.request(method, url)
+                    # Added verify=False to disable SSL verification
+                    response = s.request(method, url, verify=False)
             response.raise_for_status()  # Raise an exception if the HTTP request returned an error status
         except requests.exceptions.HTTPError as errh:
             _LOGGER.error(f"HTTP Error: {errh}")
@@ -65,6 +63,7 @@ class sunsynk_api:
             _LOGGER.error(f"Something Else: {err}")
             return None
         return response.json()
+
 
             
     async def get_inverters_data(self,id):
