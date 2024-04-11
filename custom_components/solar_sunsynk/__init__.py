@@ -4,13 +4,13 @@ from __future__ import annotations
 from .sunsynkapi import sunsynk_api
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME,CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME,CONF_REGION,CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from .const import DOMAIN, PLATFORMS,SetSolarSettingsSchema
 from .coordinator import SunsynkDataUpdateCoordinator
 
-# import logging
-# _LOGGER = logging.getLogger(__name__)
+#import logging
+#_LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Sunsynk from a config entry."""
     scan_interval = 0
@@ -18,8 +18,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         scan_interval = entry.data[CONF_SCAN_INTERVAL]
     except Exception as e:
         scan_interval = 60
-    
-    client = sunsynk_api(entry.data[CONF_USERNAME],entry.data[CONF_PASSWORD],scan_interval,hass)
+
+    region=''
+    try:
+        region = entry.data[CONF_REGION]
+    except Exception as e:
+        region = 'Sunsynk'
+
+    client = sunsynk_api(region,entry.data[CONF_USERNAME],entry.data[CONF_PASSWORD],scan_interval,hass)
     coordinator = SunsynkDataUpdateCoordinator(hass, client=client)
     await coordinator.async_config_entry_first_refresh()
 

@@ -8,7 +8,7 @@ from .sunsynkapi import sunsynk_api
 import voluptuous as vol
 from datetime import timedelta
 from homeassistant import config_entries
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME,CONF_SCAN_INTERVAL
+from homeassistant.const import CONF_PASSWORD, CONF_USERNAME,CONF_REGION,CONF_SCAN_INTERVAL
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.exceptions import HomeAssistantError
@@ -19,14 +19,15 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_USERNAME): str,
         vol.Required(CONF_PASSWORD): str,
-        vol.Optional(CONF_SCAN_INTERVAL, default=60): int
+        vol.Optional(CONF_SCAN_INTERVAL, default=60): int,
+        vol.Required(CONF_REGION): vol.In(['PowerView', 'Sunsynk']),
     }
 )
 
 
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> dict[str, Any]:
     """Validate the user input allows us to connect."""
-    client = sunsynk_api(data[CONF_USERNAME],data[CONF_PASSWORD],data[CONF_SCAN_INTERVAL],hass)
+    client = sunsynk_api(data[CONF_REGION],data[CONF_USERNAME],data[CONF_PASSWORD],data[CONF_SCAN_INTERVAL],hass)
     try:
         await client.authenticate(data[CONF_USERNAME], data[CONF_PASSWORD])
 

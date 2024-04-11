@@ -8,7 +8,8 @@ from functools import partial
 import logging
 _LOGGER = logging.getLogger(__name__)
 class sunsynk_api:
-    def __init__(self, username, password,scan_interval, hass: HomeAssistant):
+    def __init__(self, region, username, password,scan_interval, hass: HomeAssistant):
+        self.region = region
         self.hass = hass
         self.username = username
         self.password = password
@@ -31,8 +32,12 @@ class sunsynk_api:
             headers = {
                 'Content-Type': 'application/json',
             }
-        
-        host = 'https://api.sunsynk.net/'    
+
+        _LOGGER.error(self.region)
+        if self.region == SunsynkApiNames.PowerView or self.region == 'Region 1':
+            host = 'https://pv.inteless.com/'
+        elif self.region == SunsynkApiNames.Sunsynk or self.region == 'Region 2': 
+            host = 'https://api.sunsynk.net/'
         url = host + path
         response = await self.hass.async_add_executor_job(
             partial(self._send_request, method, url, headers, body)

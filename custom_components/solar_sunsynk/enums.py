@@ -4,7 +4,8 @@ from enum import Enum, unique
 @unique
 class SunsynkApiNames(str, Enum):
     """Device names used by Sunsynk."""
-
+    PowerView = "PowerView"
+    Sunsynk = "Sunsynk"
 
 @unique
 class SunsynkNames(str, Enum):

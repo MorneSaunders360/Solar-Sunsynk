@@ -13,6 +13,7 @@
                 "data": {
                     "username": "[%key:common::config_flow::data::username%]",
                     "password": "[%key:common::config_flow::data::password%]",
+                    "region": "[%key:common::config_flow::data::region%]",
                     "scan_interval": "[%key:common::config_flow::data::scan_interval%]"
                 }
             },
