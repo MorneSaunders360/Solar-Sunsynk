@@ -33,7 +33,7 @@ class sunsynk_api:
                 'Content-Type': 'application/json',
             }
 
-        _LOGGER.error(self.region)
+       # _LOGGER.error(self.region)
         if self.region == SunsynkApiNames.PowerView or self.region == 'Region 1':
             host = 'https://pv.inteless.com/'
         elif self.region == SunsynkApiNames.Sunsynk or self.region == 'Region 2': 
