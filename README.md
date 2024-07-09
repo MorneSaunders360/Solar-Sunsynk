@@ -11,7 +11,7 @@ A Home Assistant integration to track your Sunsynk solar system.
 
 # HACS Install
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=MorneSaunders360&repository=Solar-Sunsynk&category=plugin)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=MorneSaunders360&repository=Solar-Sunsynk&category=integration)
 
 1. Access HACS: Open Home Assistant and click on HACS in the sidebar.
 2. Go to Integrations: Navigate to the Integrations tab.
