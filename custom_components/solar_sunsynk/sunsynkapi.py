@@ -1,4 +1,5 @@
-
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from homeassistant.core import HomeAssistant
 from datetime import datetime, timedelta
 from .enums import SunsynkApiNames
