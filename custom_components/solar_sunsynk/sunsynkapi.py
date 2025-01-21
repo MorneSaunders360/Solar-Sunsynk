@@ -9,22 +9,26 @@ from functools import partial
 import logging
 _LOGGER = logging.getLogger(__name__)
 class sunsynk_api:
-    def __init__(self, region, username, password,scan_interval, hass: HomeAssistant):
-        self.region = region
+    def __init__(self, username, password, hass: HomeAssistant):
         self.hass = hass
         self.username = username
         self.password = password
-        self.scan_interval = scan_interval
+        self.scan_interval = 300
         self.token = None
         self.token_expires = datetime.now()
 
-    async def request(self, method, path, body, autoAuth):
-        if autoAuth:
+    async def request(self, method, path, body=None, auto_auth=True, retries=3):
+        if auto_auth:
             if not self.token or self.token_expires <= datetime.now():
-                responseAuth = await self.authenticate(self.username, self.password)
-                self.token = responseAuth["data"]["access_token"]
-                expires_in_seconds = responseAuth["data"]["expires_in"]
+                #_LOGGER.debug("Refreshing authentication token...")
+                response_auth = await self.authenticate(self.username, self.password)
+                if not response_auth:
+                    _LOGGER.error("Authentication failed.")
+                    return None
+                self.token = response_auth["data"]["access_token"]
+                expires_in_seconds = response_auth["data"]["expires_in"]
                 self.token_expires = datetime.now() + timedelta(seconds=expires_in_seconds)
+
             headers = {
                 'Content-Type': 'application/json',
                 "Authorization": f"Bearer {self.token}"
@@ -34,41 +38,44 @@ class sunsynk_api:
                 'Content-Type': 'application/json',
             }
 
-       # _LOGGER.error(self.region)
-        if self.region == SunsynkApiNames.PowerView or self.region == 'Region 1':
-            host = 'https://pv.inteless.com/'
-        elif self.region == SunsynkApiNames.Sunsynk or self.region == 'Region 2': 
-            host = 'https://api.sunsynk.net/'
+        host = 'https://api.sunsynk.net/'
         url = host + path
-        response = await self.hass.async_add_executor_job(
-            partial(self._send_request, method, url, headers, body)
-        )
-        return response
+
+        for attempt in range(retries):
+            try:
+                response = await self.hass.async_add_executor_job(
+                    partial(self._send_request, method, url, headers, body)
+                )
+                if response:
+                    return response
+            except Exception as e:
+                if attempt < retries - 1:
+                    _LOGGER.warning(f"Request failed: {e}. Retrying ({attempt + 1}/{retries})...")
+                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
+                else:
+                    _LOGGER.error(f"Request failed after {retries} attempts: {e}")
+                    return None
 
     def _send_request(self, method, url, headers, body):
         try:
             with requests.Session() as s:
                 s.headers = headers
-                if body:
-                    # Added verify=False to disable SSL verification
-                    response = s.request(method, url, data=json.dumps(body), verify=False)
-                else:
-                    # Added verify=False to disable SSL verification
-                    response = s.request(method, url, verify=False)
-            response.raise_for_status()  # Raise an exception if the HTTP request returned an error status
+                response = s.request(method, url, data=json.dumps(body) if body else None, verify=False)
+                response.raise_for_status()
+                return response.json()
         except requests.exceptions.HTTPError as errh:
-            _LOGGER.error(f"HTTP Error: {errh}")
-            return None
+            if response.status_code == 502:
+                _LOGGER.error(f"502 Too many requests: {response.text}")
+            else:
+                _LOGGER.error(f"HTTP Error: {errh}")
         except requests.exceptions.ConnectionError as errc:
             _LOGGER.error(f"Error Connecting: {errc}")
-            return None
         except requests.exceptions.Timeout as errt:
             _LOGGER.error(f"Timeout Error: {errt}")
-            return None
         except requests.exceptions.RequestException as err:
             _LOGGER.error(f"Something Else: {err}")
-            return None
-        return response.json()
+        return None
+
 
 
             
@@ -85,10 +92,7 @@ class sunsynk_api:
     async def get_inverter_input_data(self,id):
         return await self.request('GET', f'api/v1/inverter/{id}/realtime/input', None,True)        
     async def get_inverter_output_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/{id}/realtime/output', None,True)        
-    # async def get_inverter_load_data(self,id):
-    #     now = datetime.today().strftime('%Y-%m-%d')
-    #     return await self.request('GET', f'api/v1/inverter/grid/{id}/day?lan=en&date={now}&column=pac', None,True)        
+        return await self.request('GET', f'api/v1/inverter/{id}/realtime/output', None,True)             
     async def get_plant_data(self):
         return await self.request('GET', f'api/v1/plants?page=1&limit=10', None,True)        
     async def get_energy_flow_data(self,id):

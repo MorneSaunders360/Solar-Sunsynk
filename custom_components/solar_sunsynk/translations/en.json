@@ -13,9 +13,7 @@
             "user": {
                 "data": {
                     "password": "Password",
-                    "username": "Username",
-                    "scan_interval": "Scan Interval (Sec)",
-                    "region": "Region"
+                    "username": "Username"
                 }
             }
         }

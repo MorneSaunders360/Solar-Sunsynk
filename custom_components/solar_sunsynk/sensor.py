@@ -42,7 +42,7 @@ SENSOR_DESCRIPTIONS: List[SunsynkSensorDescription] = [
         name="Solar to Load",
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         device_class=SensorDeviceClass.ENERGY,
-        state_class=SensorStateClass.TOTAL_INCREASING,
+        state_class=SensorStateClass.TOTAL,
     ),
     SunsynkSensorDescription(
         key=SunsynkNames.TotalLoad,
