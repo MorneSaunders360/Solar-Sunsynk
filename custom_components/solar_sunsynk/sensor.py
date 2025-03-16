@@ -1,4 +1,5 @@
 """Sunsynk Sensor definitions."""
+
 from typing import List
 
 from homeassistant.components.sensor import (
@@ -15,6 +16,7 @@ from .const import DOMAIN
 from .coordinator import SunsynkDataUpdateCoordinator
 from .entity import SunsynkSensorDescription
 from .enums import SunsynkNames
+
 SENSOR_DESCRIPTIONS: List[SunsynkSensorDescription] = [
     SunsynkSensorDescription(
         key=SunsynkNames.SolarProduction,
@@ -93,49 +95,49 @@ SENSOR_DESCRIPTIONS: List[SunsynkSensorDescription] = [
         device_class=SensorDeviceClass.ENERGY,
         state_class=SensorStateClass.TOTAL_INCREASING,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.GridIOTotal,
         name="Instantaneous Grid I/O Total",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.Generation,
         name="Instantaneous Generation",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.BatterySOC,
         name="Instantaneous Battery SOC",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.BatteryIO,
         name="Instantaneous Battery I/O",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.Load,
         name="Instantaneous Load",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.PPV1,
         name="Instantaneous PPV1",
         native_unit_of_measurement=UnitOfPower.WATT,
         device_class=SensorDeviceClass.POWER,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-        SunsynkSensorDescription(
+    SunsynkSensorDescription(
         key=SunsynkNames.PPV2,
         name="Instantaneous PPV2",
         native_unit_of_measurement=UnitOfPower.WATT,
@@ -143,6 +145,7 @@ SENSOR_DESCRIPTIONS: List[SunsynkSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
     ),
 ]
+
 
 async def async_setup_entry(hass, entry, async_add_entities) -> None:
     """Defer sensor setup to the shared sensor module."""
@@ -175,9 +178,11 @@ class SunsynkSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._config = config
         self._name = key_supported_states.name
-        self._native_unit_of_measurement = key_supported_states.native_unit_of_measurement
-        self._device_class=key_supported_states.device_class
-        self._state_class=key_supported_states.state_class
+        self._native_unit_of_measurement = (
+            key_supported_states.native_unit_of_measurement
+        )
+        self._device_class = key_supported_states.device_class
+        self._state_class = key_supported_states.state_class
         self._serial = serial
         self._coordinator = coordinator
 

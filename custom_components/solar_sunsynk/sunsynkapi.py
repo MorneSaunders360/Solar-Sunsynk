@@ -76,7 +76,7 @@ class sunsynk_api:
     @retry(
         wait=wait_exponential(multiplier=1, min=4, max=10),
         stop=stop_after_attempt(3),
-        retry=retry_if_not_exception_type(HomeAssistantError)
+        retry=retry_if_not_exception_type(HomeAssistantError),
     )
     async def fetch(self, url: str) -> dict[str, str]:
         """
@@ -113,13 +113,19 @@ class sunsynk_api:
         return await self.fetch(f"api/v1/inverter/{inverter_sn}")
 
     async def get_inverter_load_data(self, inverter_sn: str) -> dict[str, str]:
-        return await self.fetch(f"api/v1/inverter/load/{inverter_sn}/realtime?sn={inverter_sn}&lan=en")
+        return await self.fetch(
+            f"api/v1/inverter/load/{inverter_sn}/realtime?sn={inverter_sn}&lan=en"
+        )
 
     async def get_inverter_grid_data(self, inverter_sn: str) -> dict[str, str]:
-        return await self.fetch(f"api/v1/inverter/grid/{inverter_sn}/realtime?sn={inverter_sn}&lan=en")
+        return await self.fetch(
+            f"api/v1/inverter/grid/{inverter_sn}/realtime?sn={inverter_sn}&lan=en"
+        )
 
     async def get_inverter_battery_data(self, inverter_sn: str) -> dict[str, str]:
-        return await self.fetch(f"api/v1/inverter/battery/{inverter_sn}/realtime?sn={inverter_sn}&lan=en")
+        return await self.fetch(
+            f"api/v1/inverter/battery/{inverter_sn}/realtime?sn={inverter_sn}&lan=en"
+        )
 
     async def get_inverter_input_data(self, inverter_sn: str) -> dict[str, str]:
         return await self.fetch(f"api/v1/inverter/{inverter_sn}/realtime/input")
@@ -161,7 +167,9 @@ class sunsynk_api:
 
                 # Strip out exceptions
                 for k, v in zip(inverter_data, results):
-                    inverter_data[k] = v.get("data") if not isinstance(v, Exception) else None
+                    inverter_data[k] = (
+                        v.get("data") if not isinstance(v, Exception) else None
+                    )
 
                 plant_sn_id = f"sunsynk_{plant_id}_{inverter_id}"
                 all_data[plant_sn_id] = inverter_data
