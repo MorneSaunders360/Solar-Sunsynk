@@ -1,168 +1,223 @@
+import asyncio
+
+import aiohttp
 import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
+
+from tenacity import (
+    retry,
+    RetryError,
+    wait_exponential,
+    stop_after_attempt,
+    retry_if_not_exception_type,
+)
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from datetime import datetime, timedelta
-from .enums import SunsynkApiNames
-import requests
-import json
-from functools import partial
 import logging
+
 _LOGGER = logging.getLogger(__name__)
+
+BASE_URL = "https://api.sunsynk.net"
+
+
 class sunsynk_api:
-    def __init__(self, username, password, hass: HomeAssistant):
-        self.hass = hass
-        self.username = username
-        self.password = password
-        self.scan_interval = 300
-        self.token = None
-        self.token_expires = datetime.now()
+    def __init__(self, username: str, password: str, hass: HomeAssistant):
+        self.username: str = username
+        self.password: str = password
+        self.hass: HomeAssistant = hass
+        self.scan_interval: int = 300
 
-    async def request(self, method, path, body=None, auto_auth=True, retries=3):
-        if auto_auth:
-            if not self.token or self.token_expires <= datetime.now():
-                #_LOGGER.debug("Refreshing authentication token...")
-                response_auth = await self.authenticate(self.username, self.password)
-                if not response_auth:
-                    _LOGGER.error("Authentication failed.")
-                    return None
-                self.token = response_auth["data"]["access_token"]
-                expires_in_seconds = response_auth["data"]["expires_in"]
-                self.token_expires = datetime.now() + timedelta(seconds=expires_in_seconds)
+        self._token: str = ""
+        self._token_expires: datetime = datetime.now()
+        self._session: aiohttp.Session | None = None
 
-            headers = {
-                'Content-Type': 'application/json',
-                "Authorization": f"Bearer {self.token}"
-            }
-        else:
-            headers = {
-                'Content-Type': 'application/json',
-            }
+        self._plants: list[dict] = []
 
-        host = 'https://api.sunsynk.net/'
-        url = host + path
+    def __del__(self):
+        if self._session:
+            asyncio.run_coroutine_threadsafe(self._session.close(), self.hass.loop)
 
-        for attempt in range(retries):
-            try:
-                response = await self.hass.async_add_executor_job(
-                    partial(self._send_request, method, url, headers, body)
-                )
-                if response:
-                    return response
-            except Exception as e:
-                if attempt < retries - 1:
-                    _LOGGER.warning(f"Request failed: {e}. Retrying ({attempt + 1}/{retries})...")
-                    await asyncio.sleep(2 ** attempt)  # Exponential backoff
-                else:
-                    _LOGGER.error(f"Request failed after {retries} attempts: {e}")
-                    return None
+    @property
+    def token(self) -> str:
+        """Get the current authentication token.
 
-    def _send_request(self, method, url, headers, body):
+        Returns:
+            str: The current token if valid, empty string if expired or not set.
+        """
+        if self._token and self._token_expires > datetime.now():
+            return self._token
+
+        return ""
+
+    @property
+    async def session(self) -> aiohttp.ClientSession:
+        """Get or create an authenticated aiohttp ClientSession.
+
+        Returns:
+            aiohttp.ClientSession: Session object with authentication headers set.
+
+        Raises:
+            Exception: If authentication fails during login.
+        """
+        if self._session and self.token:
+            return self._session
+
+        await self.authenticate(self.username, self.password)
+
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self._token}",
+        }
+        self._session = aiohttp.ClientSession(BASE_URL, headers=headers)
+        return self._session
+
+    @retry(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        stop=stop_after_attempt(3),
+        retry=retry_if_not_exception_type(HomeAssistantError)
+    )
+    async def fetch(self, url: str) -> dict[str, str]:
+        """
+        Perform a GET request, retrying up to three times with exponential backoff.
+
+        Returns:
+            dict[str, str]: A dictionary of JSON key / value pairs containing the
+            results of the request.
+
+        Raises:
+            RetryError: If retries have been exceeded.
+            Exception: If an exception occurred during the fetc.
+        """
         try:
-            with requests.Session() as s:
-                s.headers = headers
-                response = s.request(method, url, data=json.dumps(body) if body else None, verify=False)
-                response.raise_for_status()
-                return response.json()
-        except requests.exceptions.HTTPError as errh:
-            if response.status_code == 502:
-                _LOGGER.error(f"502 Too many requests: {response.text}")
-            else:
-                _LOGGER.error(f"HTTP Error: {errh}")
-        except requests.exceptions.ConnectionError as errc:
-            _LOGGER.error(f"Error Connecting: {errc}")
-        except requests.exceptions.Timeout as errt:
-            _LOGGER.error(f"Timeout Error: {errt}")
-        except requests.exceptions.RequestException as err:
-            _LOGGER.error(f"Something Else: {err}")
-        return None
+            async with (await self.session).get(url) as resp:
+                resp.raise_for_status()
+                resp = await resp.json()
+                return resp
 
-
-
-            
-    async def get_inverters_data(self,id):
-        return await self.request('GET', f'api/v1/plant/{id}/inverters?page=1&limit=10&status=-1&sn=&id={id}&type=-2', None,True)        
-    async def get_inverter_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/{id}', None,True)        
-    async def get_inverter_load_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/load/{id}/realtime?sn={id}&lan=en', None,True)        
-    async def get_inverter_grid_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/grid/{id}/realtime?sn={id}&lan=en', None,True)        
-    async def get_inverter_battery_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/battery/{id}/realtime?sn={id}&lan=en', None,True)        
-    async def get_inverter_input_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/{id}/realtime/input', None,True)        
-    async def get_inverter_output_data(self,id):
-        return await self.request('GET', f'api/v1/inverter/{id}/realtime/output', None,True)             
-    async def get_plant_data(self):
-        return await self.request('GET', f'api/v1/plants?page=1&limit=10', None,True)        
-    async def get_energy_flow_data(self,id):
-        return await self.request('GET', f'api/v1/plant/energy/{id}/flow', None,True)        
-    async def get_realtime_data(self,id):
-        return await self.request('GET', f'api/v1/plant/{id}/realtime?id={id}', None,True) 
-    async def safe_fetch(self, coroutine, *args, error_message="Error"):
-        """Safely fetch data using the provided coroutine function and arguments."""
-        try:
-            data = await coroutine(*args)
-            return data
+        except RetryError as e:
+            msg = f"Error fetching data from {url}: {e}. Giving up after 3 retries..."
+            _LOGGER.error(msg)
+            raise HomeAssistantError(msg)
         except Exception as e:
-            _LOGGER.error(f"Calling {coroutine.__name__} with args: {args}")
-            _LOGGER.error(f"{error_message}: {e}")
-            return None
+            _LOGGER.warning(f"Error fetching data from {url}: {e}. Retrying...")
+            raise e
 
-    async def get_all_data(self):
+    async def get_inverters_data(self, plant_id: str) -> dict[str, str]:
+        return await self.fetch(
+            f"/api/v1/plant/{plant_id}/inverters?page=1&limit=10&status=-1&sn=&id={plant_id}&type=-2"
+        )
+
+    async def get_inverter_data(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/inverter/{inverter_sn}")
+
+    async def get_inverter_load_data(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/inverter/load/{inverter_sn}/realtime?sn={inverter_sn}&lan=en")
+
+    async def get_inverter_grid_data(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/inverter/grid/{inverter_sn}/realtime?sn={inverter_sn}&lan=en")
+
+    async def get_inverter_battery_data(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/inverter/battery/{inverter_sn}/realtime?sn={inverter_sn}&lan=en")
+
+    async def get_inverter_input_data(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/inverter/{inverter_sn}/realtime/input")
+
+    async def get_inverter_output_data(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/inverter/{inverter_sn}/realtime/output")
+
+    async def get_plant_data(self) -> dict[str, str]:
+        return await self.fetch(f"api/v1/plants?page=1&limit=10")
+
+    async def get_energy_flow_data(self, plant_id: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/plant/energy/{plant_id}/flow")
+
+    async def get_realtime_data(self, plant_id: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/plant/{plant_id}/realtime?id={plant_id}")
+
+    async def get_all_data(self) -> dict:
         all_data = {}
 
-        # Attempt to fetch plant data
-        plant_data = await self.safe_fetch(self.get_plant_data, error_message="Error while getting plant data")
-        if plant_data is None or "data" not in plant_data or "infos" not in plant_data["data"]:
-            return None
-
-        for plant in plant_data["data"]["infos"]:
+        for plant in (await self.get_plant_data())["data"]["infos"]:
             plant_id = plant["id"]
-            inverterdata = await self.safe_fetch(self.get_inverters_data, plant_id, error_message="Error while getting inverter data")
-            if inverterdata is None or "data" not in inverterdata or "infos" not in inverterdata["data"]:
-                continue
-
-            for inverter in inverterdata["data"]["infos"]:
-                inverterId = inverter["sn"]
-                inverter_data = await self.safe_fetch(self.get_inverter_data, inverterId, error_message="Error while getting inverter data")
-                inverter_load_data = await self.safe_fetch(self.get_inverter_load_data, inverterId, error_message="Error while getting inverter load data")
-                inverter_grid_data = await self.safe_fetch(self.get_inverter_grid_data, inverterId, error_message="Error while getting inverter grid data")
-                inverter_battery_data = await self.safe_fetch(self.get_inverter_battery_data, inverterId, error_message="Error while getting inverter battery data")
-                inverter_input_data = await self.safe_fetch(self.get_inverter_input_data, inverterId, error_message="Error while getting inverter input data")
-                inverter_output_data = await self.safe_fetch(self.get_inverter_output_data, inverterId, error_message="Error while getting inverter output data")
-                inverter_settings = await self.safe_fetch(self.get_settings, inverterId, error_message="Error while getting inverter settings")
-
-                plant_sn_id = f"sunsynk_{plant_id}_{inverterId}"  
-                # Add data to all_data
-                all_data[plant_sn_id] = {
-                    "inverter_data": inverter_data["data"] if inverter_data else None,
-                    "inverter_load_data": inverter_load_data["data"] if inverter_load_data else None,
-                    "inverter_grid_data": inverter_grid_data["data"] if inverter_grid_data else None,
-                    "inverter_battery_data": inverter_battery_data["data"] if inverter_battery_data else None,
-                    "inverter_input_data": inverter_input_data["data"] if inverter_input_data else None,
-                    "inverter_output_data": inverter_output_data["data"] if inverter_output_data else None,
-                    "inverter_settings_data": inverter_settings["data"] if inverter_settings else None,
+            for inverter in (await self.get_inverters_data(plant_id))["data"]["infos"]:
+                inverter_id = inverter["sn"]
+                inverter_data = {
+                    "inverter_data": self.get_inverter_data(inverter_id),
+                    "inverter_load_data": self.get_inverter_load_data(inverter_id),
+                    "inverter_grid_data": self.get_inverter_grid_data(inverter_id),
+                    "inverter_battery_data": self.get_inverter_battery_data(
+                        inverter_id
+                    ),
+                    "inverter_input_data": self.get_inverter_input_data(inverter_id),
+                    "inverter_output_data": self.get_inverter_output_data(inverter_id),
+                    "inverter_settings_data": self.get_settings(inverter_id),
                 }
+                # Gather all results
+                results = await asyncio.gather(
+                    *inverter_data.values(), return_exceptions=True
+                )
+
+                # Strip out exceptions
+                for k, v in zip(inverter_data, results):
+                    inverter_data[k] = v.get("data") if not isinstance(v, Exception) else None
+
+                plant_sn_id = f"sunsynk_{plant_id}_{inverter_id}"
+                all_data[plant_sn_id] = inverter_data
 
         return all_data
-    
-    
-    async def get_settings(self,sn):
-        return await self.request('GET', f'api/v1/common/setting/{sn}/read', None,True)
-    async def set_settings(self, sn,setting_data):
-        return await self.request('POST', f'api/v1/common/setting/{sn}/set', setting_data,True)
-    
-    def authenticate(self, username, password):
-        pool_data = {
-            "username": username,
-            "password": password,
-            'grant_type': 'password',
-            'client_id': 'csp-web'
-        }
-        try:
-            return self.request('POST', 'oauth/token', pool_data, False)
-        except Exception as e:
-            _LOGGER.error(f"Error during authentication: {e}")
-        return None
 
+    async def get_settings(self, inverter_sn: str) -> dict[str, str]:
+        return await self.fetch(f"api/v1/common/setting/{inverter_sn}/read")
+
+    @retry(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        stop=stop_after_attempt(3),
+    )
+    async def set_settings(
+        self, inverter_sn: str, setting_data: dict[str, str]
+    ) -> dict[str, str]:
+        async with (await self.session).post(
+            f"api/v1/common/setting/{inverter_sn}/set", json=setting_data
+        ) as resp:
+            resp.raise_for_status()
+            return await resp.json()
+
+    @retry(
+        wait=wait_exponential(multiplier=1, min=4, max=10),
+        stop=stop_after_attempt(3),
+        retry=retry_if_not_exception_type(HomeAssistantError),
+    )
+    async def authenticate(self, username: str, password: str) -> None:
+        """Authenticate with the Sunsynk API and obtain access token.
+
+        This method performs the login request to obtain a new authentication token.
+        It updates the internal token and expiration time based on the response.
+
+        Raises:
+            Exception: If authentication fails or response indicates failure
+            aiohttp.ClientError: If there are network/HTTP errors during the request
+        """
+        async with aiohttp.ClientSession(BASE_URL) as session:
+            data = {
+                "username": username,
+                "password": password,
+                "grant_type": "password",
+                "client_id": "csp-web",
+            }
+            async with session.post("/oauth/token", json=data) as resp:
+                resp.raise_for_status()
+                resp_json = await resp.json()
+                if not resp_json["success"]:
+                    # Don't retry on authentication failures if credentials are incorrect
+                    msg = f"Error during authentication: {resp_json['msg']}"
+                    _LOGGER.error(msg)
+                    raise HomeAssistantError(msg)
+
+                resp_data = resp_json["data"]
+
+                self._token = resp_data["access_token"]
+                self._token_expires = datetime.now() + timedelta(
+                    seconds=resp_data["expires_in"]
+                )
