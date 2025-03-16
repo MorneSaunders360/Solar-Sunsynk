@@ -1,4 +1,5 @@
 """The Sunsynk integration."""
+
 from __future__ import annotations
 
 from .sunsynkapi import sunsynk_api
@@ -6,14 +7,15 @@ from .sunsynkapi import sunsynk_api
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
-from .const import DOMAIN, PLATFORMS,SetSolarSettingsSchema
+from .const import DOMAIN, PLATFORMS, SetSolarSettingsSchema
 from .coordinator import SunsynkDataUpdateCoordinator
 
-#import logging
-#_LOGGER = logging.getLogger(__name__)
+
+# import logging
+# _LOGGER = logging.getLogger(__name__)
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Sunsynk from a config entry."""
-    client = sunsynk_api(entry.data[CONF_USERNAME],entry.data[CONF_PASSWORD],hass)
+    client = sunsynk_api(entry.data[CONF_USERNAME], entry.data[CONF_PASSWORD], hass)
     coordinator = SunsynkDataUpdateCoordinator(hass, client=client)
     await coordinator.async_config_entry_first_refresh()
 
@@ -22,7 +24,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     entry.async_on_unload(entry.add_update_listener(update_listener))
-    
+
     async def async_set_solar_settings(call):
         sn = call.data.get("sn")
         new_dict = {}
@@ -31,7 +33,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             new_dict[key] = call.data[key]
         # Prepare the payload
         response = await client.set_settings(sn, new_dict)
-        if response.get('success') == True:
+        if response.get("success") == True:
             # Request successful
             return True
         else:
@@ -51,6 +53,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
+
 
 async def update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Handle options update."""

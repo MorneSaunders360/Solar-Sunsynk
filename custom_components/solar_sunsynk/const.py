@@ -1,7 +1,5 @@
 """Constants for the Sunsynk integration."""
 
-from datetime import timedelta
-
 from homeassistant.const import Platform
 
 import voluptuous as vol
