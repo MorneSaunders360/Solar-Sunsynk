@@ -27,7 +27,6 @@ class sunsynk_api:
         self.username: str = username
         self.password: str = password
         self.hass: HomeAssistant = hass
-        self.scan_interval: int = 300
 
         self._token: str = ""
         self._token_expires: datetime = datetime.now()
