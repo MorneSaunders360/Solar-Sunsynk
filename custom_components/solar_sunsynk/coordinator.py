@@ -7,7 +7,7 @@ from collections import deque, defaultdict
 from statistics import mean
 
 import aiohttp
-
+from typing import Any, Dict, List
 from .enums import SunsynkNames
 from .sunsynkapi import sunsynk_api
 import datetime
@@ -71,91 +71,72 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
             _LOGGER.error("Unexpected error during data update: %s", general_error)
             raise UpdateFailed(general_error) from general_error
 
+        
+
+        def _to_float(val: Any) -> float:
+            try:
+                if val is None:
+                    return 0.0
+                if isinstance(val, (int, float)):
+                    return float(val)
+                s: str = str(val).strip()
+                if s in {"--", ""}:
+                    return 0.0
+                return float(s)
+            except Exception:
+                return 0.0
+
         for plant_sn_id, plant_sn_id_data in all_data.items():
             try:
-                inverter_data = plant_sn_id_data["inverter_data"]
-                inverter_settings_data = plant_sn_id_data["inverter_settings_data"]
-                inverter_load_data = plant_sn_id_data["inverter_load_data"]
-                inverter_grid_data = plant_sn_id_data["inverter_grid_data"]
-                inverter_battery_data = plant_sn_id_data["inverter_battery_data"]
-                inverter_input_data = plant_sn_id_data["inverter_input_data"]
+                inverter_data: Dict[str, Any] = plant_sn_id_data["inverter_data"]
+                inverter_settings_data: Dict[str, Any] = plant_sn_id_data["inverter_settings_data"]
+                inverter_load_data: Dict[str, Any] = plant_sn_id_data["inverter_load_data"]
+                inverter_grid_data: Dict[str, Any] = plant_sn_id_data["inverter_grid_data"]
+                inverter_battery_data: Dict[str, Any] = plant_sn_id_data["inverter_battery_data"]
+                inverter_input_data: Dict[str, Any] = plant_sn_id_data["inverter_input_data"]
 
                 self._record_updated_at(plant_sn_id, inverter_data["updateAt"])
 
-                # Statistics
-                solar_to_load = float(inverter_input_data.get("etoday", 0))
-                if solar_to_load:
-                    solar_to_load = (
-                        float(inverter_load_data.get("dailyUsed", 0)) - solar_to_load
-                    )
+                etoday_val: float = _to_float(inverter_input_data.get("etoday"))
+                total_load_val: float = _to_float(inverter_load_data.get("dailyUsed"))
+                solar_to_load: float = total_load_val - etoday_val if etoday_val > 0.0 else 0.0
 
-                average_cap = mean(
-                    float(inverter_settings_data.get(f"cap{i}", 0)) for i in range(1, 7)
-                )
+                caps_values: List[float] = []
+                for i in range(1, 7):
+                    key: str = f"cap{i}"
+                    if key in inverter_settings_data:
+                        caps_values.append(_to_float(inverter_settings_data.get(key)))
+                average_cap: float = (sum(caps_values) / len(caps_values)) if caps_values else 0.0
 
-                pvIV = inverter_input_data.get("pvIV", [{}, {}])
+                pvIV_raw: Any = inverter_input_data.get("pvIV")
+                pvIV_list: List[Dict[str, Any]] = pvIV_raw if isinstance(pvIV_raw, list) else []
+                pvIV_padded: List[Dict[str, Any]] = pvIV_list + [{}, {}]
+                ppv1: float = _to_float(pvIV_padded[0].get("ppv"))
+                ppv2: float = _to_float(pvIV_padded[1].get("ppv"))
 
-                sunsynk_data = {
-                    "Model": inverter_data.get("model")
-                    or inverter_data.get("brand", ""),
-                    SunsynkNames.SolarProduction.value: inverter_input_data.get(
-                        "etoday", 0
-                    ),
-                    SunsynkNames.SolarToBattery.value: inverter_battery_data.get(
-                        "etodayChg", 0
-                    ),
-                    SunsynkNames.SolarToGrid.value: inverter_grid_data.get(
-                        "etodayTo", 0
-                    ),
+                sunsynk_data: Dict[str, Any] = {
+                    "Model": inverter_data.get("model") or inverter_data.get("brand", ""),
+                    SunsynkNames.SolarProduction.value: etoday_val,
+                    SunsynkNames.SolarToBattery.value: _to_float(inverter_battery_data.get("etodayChg")),
+                    SunsynkNames.SolarToGrid.value: _to_float(inverter_grid_data.get("etodayTo")),
                     SunsynkNames.SolarToLoad.value: solar_to_load,
-                    SunsynkNames.TotalLoad.value: inverter_load_data.get(
-                        "dailyUsed", 0
-                    ),
-                    SunsynkNames.GridToLoad.value: inverter_grid_data.get(
-                        "etodayFrom", 0
-                    ),
-                    SunsynkNames.StateOfCharge.value: inverter_battery_data.get(
-                        "soc", 0
-                    ),
-                    SunsynkNames.Charge.value: inverter_battery_data.get(
-                        "etodayChg", 0
-                    ),
-                    SunsynkNames.Discharge.value: inverter_battery_data.get(
-                        "etodayDischg", 0
-                    ),
-                    SunsynkNames.GridIOTotal.value: inverter_grid_data.get(
-                        "limiterTotalPower", 0
-                    ),
-                    SunsynkNames.GridPowerTotal.value: inverter_grid_data.get("pac", 0),
-                    SunsynkNames.Generation.value: inverter_input_data.get("pac", 0),
-                    SunsynkNames.BatterySOC.value: inverter_battery_data.get(
-                        "bmsSoc", 0
-                    ),
-                    SunsynkNames.BatteryIO.value: inverter_battery_data.get("power", 0),
-                    SunsynkNames.Load.value: inverter_load_data.get("totalPower", 0),
-                    SunsynkNames.PPV1.value: pvIV[0].get("ppv", 0),
-                    SunsynkNames.PPV2.value: pvIV[1].get("ppv", 0),
+                    SunsynkNames.TotalLoad.value: total_load_val,
+                    SunsynkNames.GridToLoad.value: _to_float(inverter_grid_data.get("etodayFrom")),
+                    SunsynkNames.StateOfCharge.value: _to_float(inverter_battery_data.get("soc")),
+                    SunsynkNames.Charge.value: _to_float(inverter_battery_data.get("etodayChg")),
+                    SunsynkNames.Discharge.value: _to_float(inverter_battery_data.get("etodayDischg")),
+                    SunsynkNames.GridIOTotal.value: _to_float(inverter_grid_data.get("limiterTotalPower")),
+                    SunsynkNames.GridPowerTotal.value: _to_float(inverter_grid_data.get("pac")),
+                    SunsynkNames.Generation.value: _to_float(inverter_input_data.get("pac")),
+                    SunsynkNames.BatterySOC.value: _to_float(inverter_battery_data.get("bmsSoc")),
+                    SunsynkNames.BatteryIO.value: _to_float(inverter_battery_data.get("power")),
+                    SunsynkNames.Load.value: _to_float(inverter_load_data.get("totalPower")),
+                    SunsynkNames.PPV1.value: ppv1,
+                    SunsynkNames.PPV2.value: ppv2,
                     SunsynkNames.SettingAverageCap.value: average_cap,
                 }
 
                 data[plant_sn_id] = sunsynk_data
-
-            except IndexError as index_error:
-                _LOGGER.error(
-                    "IndexError for inverter %s while processing statistics: %s. Data: %s",
-                    plant_sn_id,
-                    index_error,
-                    plant_sn_id_data,
-                )
-                continue
-
-            except Exception as stats_error:
-                _LOGGER.error(
-                    "Unexpected error while processing statistics for inverter %s: %s",
-                    plant_sn_id,
-                    stats_error,
-                )
-                continue
 
             except KeyError as key_error:
                 _LOGGER.error(
@@ -164,8 +145,24 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                     key_error,
                 )
                 continue
+            except IndexError as index_error:
+                _LOGGER.error(
+                    "IndexError for inverter %s while processing statistics: %s. Data: %s",
+                    plant_sn_id,
+                    index_error,
+                    plant_sn_id_data,
+                )
+                continue
+            except Exception as stats_error:
+                _LOGGER.error(
+                    "Unexpected error while processing statistics for inverter %s: %s",
+                    plant_sn_id,
+                    stats_error,
+                )
+                continue
 
         return data
+
 
     def _record_updated_at(self, plant_sn_id: str, updated_at: str) -> None:
         """Record the timestamp of the most recent dataset that is available for this inverter and ignore.
