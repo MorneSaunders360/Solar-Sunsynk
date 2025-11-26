@@ -1,13 +1,16 @@
 import asyncio
-import base64
-import hashlib
-import time
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import padding
+
 import aiohttp
 import urllib3
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import HomeAssistantError
+import time
+import base64
+import hashlib
+from datetime import datetime, timedelta
+
+from cryptography.hazmat.primitives.asymmetric.padding import PKCS1v15
+from cryptography.hazmat.primitives.serialization import load_pem_public_key
 
 from tenacity import (
     retry,
@@ -200,60 +203,86 @@ class sunsynk_api:
         stop=stop_after_attempt(3),
         retry=retry_if_not_exception_type(HomeAssistantError),
     )
-    def _encrypt_password(self, password: str, public_key_base64: str) -> str:
-        key_bytes: bytes = base64.b64decode(public_key_base64)
-        public_key = serialization.load_der_public_key(key_bytes)
-        password_bytes: bytes = password.encode("utf-8")
-        encrypted_bytes: bytes = public_key.encrypt(password_bytes, padding.PKCS1v15())
-        encrypted_base64: str = base64.b64encode(encrypted_bytes).decode("ascii")
-        return encrypted_base64
-
     async def authenticate(self, username: str, password: str) -> None:
+        """Authenticate with the Sunsynk API and obtain access token.
+
+        This method performs the login request to obtain a new authentication token.
+        It updates the internal token and expiration time based on the response.
+
+        Raises:
+            Exception: If authentication fails or response indicates failure
+            aiohttp.ClientError: If there are network/HTTP errors during the request
+        """
         async with aiohttp.ClientSession(BASE_URL) as session:
-            source: str = "sunsynk"
-            nonce: str = str(int(time.time() * 1000))
-            sign_input: str = f"{nonce}{source}"
-            sign: str = hashlib.md5(sign_input.encode("utf-8")).hexdigest()
+            source: str = "elinter" if "pv.inteless.com" in BASE_URL else "sunsynk"
+
+            public_key_nonce: str = str(int(time.time() * 1000))
+            public_key_signature_input: str = (
+                f"nonce={public_key_nonce}&source={source}POWER_VIEW"
+            )
+            public_key_signature: str = hashlib.md5(
+                public_key_signature_input.encode("utf-8")
+            ).hexdigest()
 
             params: dict[str, str] = {
-                "nonce": nonce,
                 "source": source,
-                "sign": sign,
+                "nonce": public_key_nonce,
+                "sign": public_key_signature,
             }
 
             async with session.get("/anonymous/publicKey", params=params) as resp:
                 resp.raise_for_status()
                 public_key_json: dict[str, object] = await resp.json()
-                if not public_key_json.get("success"):
-                    msg: str = f"Error getting public key: {public_key_json.get('msg')}"
-                    _LOGGER.error(msg)
-                    raise HomeAssistantError(msg)
+                public_key_string: str = str(public_key_json["data"])
 
-                public_key_base64: str = str(public_key_json["data"])
+            public_key_pem: str = (
+                "-----BEGIN PUBLIC KEY-----\n"
+                + public_key_string
+                + "\n-----END PUBLIC KEY-----"
+            )
+            public_key = load_pem_public_key(public_key_pem.encode("utf-8"))
 
-            encrypted_password: str = self._encrypt_password(password, public_key_base64)
+            encrypted_password_bytes: bytes = public_key.encrypt(
+                password.encode("utf-8"),
+                PKCS1v15(),
+            )
+            encrypted_password: str = base64.b64encode(
+                encrypted_password_bytes
+            ).decode("utf-8")
+
+            token_nonce: str = str(int(time.time() * 1000))
+            token_sign_string: str = (
+                f"nonce={token_nonce}&source=sunsynk{public_key_string[:10]}"
+            )
+            token_sign: str = hashlib.md5(
+                token_sign_string.encode("utf-8")
+            ).hexdigest()
 
             data: dict[str, object] = {
-                "username": username,
-                "password": encrypted_password,
-                "grant_type": "password",
                 "client_id": "csp-web",
+                "grant_type": "password",
+                "password": encrypted_password,
                 "source": source,
+                "username": username,
+                "nonce": token_nonce,
+                "sign": token_sign,
             }
 
             async with session.post("/oauth/token/new", json=data) as resp:
                 resp.raise_for_status()
                 resp_json: dict[str, object] = await resp.json()
-                if not resp_json["success"]:
-                    msg: str = f"Error during authentication: {resp_json['msg']}"
-                    _LOGGER.error(msg)
-                    raise HomeAssistantError(msg)
 
-                resp_data: dict[str, object] = resp_json["data"] 
+                msg: str = str(resp_json.get("msg"))
+                if msg != "Success":
+                    error_msg: str = f"Error during authentication: {msg}"
+                    _LOGGER.error(error_msg)
+                    raise HomeAssistantError(error_msg)
 
+                resp_data: dict[str, object] = resp_json["data"]  # type: ignore[assignment]
                 access_token: str = str(resp_data["access_token"])
-                expires_in_seconds: int = int(resp_data["expires_in"])
+                expires_in_raw: object = resp_data.get("expires_in", 0)
+                expires_in: int = int(expires_in_raw) if expires_in_raw is not None else 0
 
                 self._token = access_token
-                self._token_expires = datetime.now() + timedelta(seconds=expires_in_seconds)
+                self._token_expires = datetime.now() + timedelta(seconds=expires_in)
 
