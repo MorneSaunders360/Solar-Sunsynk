@@ -153,6 +153,13 @@ class sunsynk_api:
 
         for plant in (await self.get_plant_data())["data"]["infos"]:
             plant_id = plant["id"]
+            # Fetch plant-level energy flow data (shared across all inverters in this plant)
+            try:
+                energy_flow_resp = await self.get_energy_flow_data(plant_id)
+                energy_flow_data = energy_flow_resp.get("data") if not isinstance(energy_flow_resp, Exception) else None
+            except Exception:
+                energy_flow_data = None
+
             for inverter in (await self.get_inverters_data(plant_id))["data"]["infos"]:
                 inverter_id = inverter["sn"]
                 inverter_data = {
@@ -176,6 +183,8 @@ class sunsynk_api:
                     inverter_data[k] = (
                         v.get("data") if not isinstance(v, Exception) else None
                     )
+
+                inverter_data["energy_flow_data"] = energy_flow_data
 
                 plant_sn_id = f"sunsynk_{plant_id}_{inverter_id}"
                 all_data[plant_sn_id] = inverter_data

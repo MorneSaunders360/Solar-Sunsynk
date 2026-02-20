@@ -88,12 +88,14 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
 
         for plant_sn_id, plant_sn_id_data in all_data.items():
             try:
-                inverter_data: Dict[str, Any] = plant_sn_id_data["inverter_data"]
-                inverter_settings_data: Dict[str, Any] = plant_sn_id_data["inverter_settings_data"]
-                inverter_load_data: Dict[str, Any] = plant_sn_id_data["inverter_load_data"]
-                inverter_grid_data: Dict[str, Any] = plant_sn_id_data["inverter_grid_data"]
-                inverter_battery_data: Dict[str, Any] = plant_sn_id_data["inverter_battery_data"]
-                inverter_input_data: Dict[str, Any] = plant_sn_id_data["inverter_input_data"]
+                inverter_data: Dict[str, Any] = plant_sn_id_data["inverter_data"] or {}
+                inverter_settings_data: Dict[str, Any] = plant_sn_id_data["inverter_settings_data"] or {}
+                inverter_load_data: Dict[str, Any] = plant_sn_id_data["inverter_load_data"] or {}
+                inverter_grid_data: Dict[str, Any] = plant_sn_id_data["inverter_grid_data"] or {}
+                inverter_battery_data: Dict[str, Any] = plant_sn_id_data["inverter_battery_data"] or {}
+                inverter_input_data: Dict[str, Any] = plant_sn_id_data["inverter_input_data"] or {}
+                inverter_output_data: Dict[str, Any] = plant_sn_id_data["inverter_output_data"] or {}
+                energy_flow_data: Dict[str, Any] = plant_sn_id_data.get("energy_flow_data") or {}
 
                 self._record_updated_at(plant_sn_id, inverter_data["updateAt"])
 
@@ -110,12 +112,56 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
 
                 pvIV_raw: Any = inverter_input_data.get("pvIV")
                 pvIV_list: List[Dict[str, Any]] = pvIV_raw if isinstance(pvIV_raw, list) else []
-                pvIV_padded: List[Dict[str, Any]] = pvIV_list + [{}, {}]
+                pvIV_padded: List[Dict[str, Any]] = pvIV_list + [{}, {}, {}, {}]
                 ppv1: float = _to_float(pvIV_padded[0].get("ppv"))
                 ppv2: float = _to_float(pvIV_padded[1].get("ppv"))
+                ppv3: float = _to_float(pvIV_padded[2].get("ppv"))
+                ppv4: float = _to_float(pvIV_padded[3].get("ppv"))
+                ipv1: float = _to_float(pvIV_padded[0].get("ipv"))
+                ipv2: float = _to_float(pvIV_padded[1].get("ipv"))
+                ipv3: float = _to_float(pvIV_padded[2].get("ipv"))
+                ipv4: float = _to_float(pvIV_padded[3].get("ipv"))
+                vpv1: float = _to_float(pvIV_padded[0].get("vpv"))
+                vpv2: float = _to_float(pvIV_padded[1].get("vpv"))
+                vpv3: float = _to_float(pvIV_padded[2].get("vpv"))
+                vpv4: float = _to_float(pvIV_padded[3].get("vpv"))
+                pv_current: float = ipv1 + ipv2 + ipv3 + ipv4
+
+                load_vip_raw: Any = inverter_load_data.get("vip")
+                load_vip: List[Dict[str, Any]] = load_vip_raw if isinstance(load_vip_raw, list) else [{}]
+                load_volt: float = _to_float(load_vip[0].get("volt") if load_vip else 0)
+                load_power: float = _to_float(inverter_load_data.get("totalPower"))
+                load_current: float = (load_power / load_volt) if load_volt != 0 else 0.0
+
+                grid_vip_raw: Any = inverter_grid_data.get("vip")
+                grid_vip: List[Dict[str, Any]] = grid_vip_raw if isinstance(grid_vip_raw, list) else [{}]
+                grid_volt: float = _to_float(grid_vip[0].get("volt") if grid_vip else 0)
+                grid_power: float = _to_float(inverter_grid_data.get("pac"))
+                grid_current: float = (grid_power / grid_volt) if grid_volt != 0 else 0.0
+                grid_fac: float = _to_float(inverter_grid_data.get("fac"))
+
+                output_vip_raw: Any = inverter_output_data.get("vip")
+                output_vip: List[Dict[str, Any]] = output_vip_raw if isinstance(output_vip_raw, list) else []
+                output_vip_padded: List[Dict[str, Any]] = output_vip + [{}, {}, {}]
+                output_volt: float = _to_float(output_vip_padded[0].get("volt"))
+                output_current: float = (
+                    _to_float(output_vip_padded[0].get("current"))
+                    + _to_float(output_vip_padded[1].get("current"))
+                    + _to_float(output_vip_padded[2].get("current"))
+                )
+
+                bat_etotal_chg: float = _to_float(inverter_battery_data.get("etotalChg"))
+                bat_etotal_dischg: float = _to_float(inverter_battery_data.get("etotalDischg"))
+                bat_efficiency: float = (
+                    round(100 - (bat_etotal_chg - bat_etotal_dischg) / bat_etotal_dischg * 100)
+                    if bat_etotal_dischg > 0 else 0.0
+                )
+
+                gateway_vo: Dict[str, Any] = inverter_data.get("gatewayVO") or {}
 
                 sunsynk_data: Dict[str, Any] = {
                     "Model": inverter_data.get("model") or inverter_data.get("brand", ""),
+                    # --- Existing sensors ---
                     SunsynkNames.SolarProduction.value: etoday_val,
                     SunsynkNames.SolarToBattery.value: _to_float(inverter_battery_data.get("etodayChg")),
                     SunsynkNames.SolarToGrid.value: _to_float(inverter_grid_data.get("etodayTo")),
@@ -126,14 +172,76 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                     SunsynkNames.Charge.value: _to_float(inverter_battery_data.get("etodayChg")),
                     SunsynkNames.Discharge.value: _to_float(inverter_battery_data.get("etodayDischg")),
                     SunsynkNames.GridIOTotal.value: _to_float(inverter_grid_data.get("limiterTotalPower")),
-                    SunsynkNames.GridPowerTotal.value: _to_float(inverter_grid_data.get("pac")),
+                    SunsynkNames.GridPowerTotal.value: grid_power,
                     SunsynkNames.Generation.value: _to_float(inverter_input_data.get("pac")),
                     SunsynkNames.BatterySOC.value: _to_float(inverter_battery_data.get("bmsSoc")),
                     SunsynkNames.BatteryIO.value: _to_float(inverter_battery_data.get("power")),
-                    SunsynkNames.Load.value: _to_float(inverter_load_data.get("totalPower")),
+                    SunsynkNames.Load.value: load_power,
                     SunsynkNames.PPV1.value: ppv1,
                     SunsynkNames.PPV2.value: ppv2,
                     SunsynkNames.SettingAverageCap.value: average_cap,
+                    # --- PV strings 3 & 4 + all voltages/currents ---
+                    SunsynkNames.PPV3.value: ppv3,
+                    SunsynkNames.PPV4.value: ppv4,
+                    SunsynkNames.IPV1.value: ipv1,
+                    SunsynkNames.IPV2.value: ipv2,
+                    SunsynkNames.IPV3.value: ipv3,
+                    SunsynkNames.IPV4.value: ipv4,
+                    SunsynkNames.VPV1.value: vpv1,
+                    SunsynkNames.VPV2.value: vpv2,
+                    SunsynkNames.VPV3.value: vpv3,
+                    SunsynkNames.VPV4.value: vpv4,
+                    SunsynkNames.PVCurrent.value: pv_current,
+                    SunsynkNames.PVEtotal.value: _to_float(inverter_input_data.get("etotal")),
+                    # --- Load ---
+                    SunsynkNames.LoadTotalUsed.value: _to_float(inverter_load_data.get("totalUsed")),
+                    SunsynkNames.LoadVolt.value: load_volt,
+                    SunsynkNames.LoadUpsPower.value: _to_float(inverter_load_data.get("upsPowerTotal")),
+                    SunsynkNames.LoadFac.value: _to_float(inverter_load_data.get("loadFac")),
+                    SunsynkNames.LoadCurrent.value: load_current,
+                    # --- Battery extended ---
+                    SunsynkNames.BatteryTemp.value: _to_float(inverter_battery_data.get("temp")),
+                    SunsynkNames.BatteryVoltage.value: _to_float(inverter_battery_data.get("voltage")),
+                    SunsynkNames.BatteryChargeVolt.value: _to_float(inverter_battery_data.get("chargeVolt")),
+                    SunsynkNames.BatteryStatus.value: _to_float(inverter_battery_data.get("status")),
+                    SunsynkNames.BatteryChargeCurrentLimit.value: _to_float(inverter_battery_data.get("chargeCurrentLimit")),
+                    SunsynkNames.BatteryDischargeCurrentLimit.value: _to_float(inverter_battery_data.get("dischargeCurrentLimit")),
+                    SunsynkNames.BatteryCapacity.value: _to_float(inverter_battery_data.get("correctCap")),
+                    SunsynkNames.BatteryCurrent.value: _to_float(inverter_battery_data.get("current")),
+                    SunsynkNames.BatteryEtotalChg.value: bat_etotal_chg,
+                    SunsynkNames.BatteryEtotalDischg.value: bat_etotal_dischg,
+                    SunsynkNames.BatteryEfficiency.value: bat_efficiency,
+                    # --- Grid extended ---
+                    SunsynkNames.GridTotalIn.value: _to_float(inverter_grid_data.get("etotalFrom")),
+                    SunsynkNames.GridTotalOut.value: _to_float(inverter_grid_data.get("etotalTo")),
+                    SunsynkNames.GridFac.value: grid_fac,
+                    SunsynkNames.GridStatus.value: _to_float(inverter_grid_data.get("status")),
+                    SunsynkNames.GridPF.value: _to_float(inverter_grid_data.get("pf")),
+                    SunsynkNames.GridVolt.value: grid_volt,
+                    SunsynkNames.GridCurrent.value: grid_current,
+                    # --- Output (already fetched, now used) ---
+                    SunsynkNames.OutputPowerAux.value: _to_float(inverter_output_data.get("poweraux")),
+                    SunsynkNames.OutputEtotal.value: _to_float(inverter_output_data.get("etotal")),
+                    SunsynkNames.OutputEtoday.value: _to_float(inverter_output_data.get("etoday")),
+                    SunsynkNames.OutputPAC.value: _to_float(inverter_output_data.get("pac")),
+                    SunsynkNames.OutputPInv.value: _to_float(inverter_output_data.get("pInv")),
+                    SunsynkNames.OutputFac.value: _to_float(inverter_output_data.get("fac")),
+                    SunsynkNames.OutputVolt.value: output_volt,
+                    SunsynkNames.OutputCurrent.value: output_current,
+                    # --- Energy flow ---
+                    SunsynkNames.FlowBatterySOC.value: _to_float(energy_flow_data.get("soc")),
+                    SunsynkNames.FlowLoadPower.value: _to_float(energy_flow_data.get("loadOrEpsPower")),
+                    SunsynkNames.FlowPVPower.value: _to_float(energy_flow_data.get("pvPower")),
+                    SunsynkNames.FlowBatteryPower.value: _to_float(energy_flow_data.get("battPower")),
+                    SunsynkNames.FlowGridPower.value: _to_float(energy_flow_data.get("gridOrMeterPower")),
+                    SunsynkNames.FlowGenPower.value: _to_float(energy_flow_data.get("genPower")),
+                    SunsynkNames.FlowMinPower.value: _to_float(energy_flow_data.get("minPower")),
+                    SunsynkNames.FlowHeatPumpPower.value: _to_float(energy_flow_data.get("heatPumpPower")),
+                    SunsynkNames.FlowSmartLoadPower.value: _to_float(energy_flow_data.get("smartLoadPower")),
+                    SunsynkNames.FlowHomeLoadPower.value: _to_float(energy_flow_data.get("homeLoadPower")),
+                    # --- Inverter status ---
+                    SunsynkNames.InverterStatus.value: _to_float(inverter_data.get("status")),
+                    SunsynkNames.GatewayStatus.value: _to_float(gateway_vo.get("status")),
                 }
 
                 data[plant_sn_id] = sunsynk_data
