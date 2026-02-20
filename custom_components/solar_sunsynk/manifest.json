@@ -2,11 +2,11 @@
   "domain": "solar_sunsynk",
   "name": "Solar Sunsynk ",
   "after_dependencies": [""],
-  "codeowners": ["@MorneSaunders360"],
+  "codeowners": ["@CosAdrPala"],
   "config_flow": true,
   "documentation": "https://github.com/MorneSaunders360/Solar-Sunsynk",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/MorneSaunders360/Solar-Sunsynk/issues",
   "requirements": ["tenacity>=9"],
-  "version": "1.0.20"
+  "version": "1.0.21"
 }
