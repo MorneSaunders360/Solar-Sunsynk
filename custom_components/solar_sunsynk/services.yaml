@@ -231,6 +231,48 @@ set_solar_settings:
       required: false
       selector:
         text:
+    sellTime1En:
+      description: Sell time 1 enable
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sellTime2En:
+      description: Sell time 2 enable
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sellTime3En:
+      description: Sell time 3 enable
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sellTime4En:
+      description: Sell time 4 enable
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sellTime5En:
+      description: Sell time 5 enable
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sellTime6En:
+      description: Sell time 6 enable
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
     zeroExportPower:
       description: Zero export power
       default: "0"
@@ -242,6 +284,34 @@ set_solar_settings:
       description: Solar maximum sell power
       default: "9000"
       example: "9000"
+      required: false
+      selector:
+        text:
+    gridPeakShaving:
+      description: Grid peak shaving
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    lowVoltCrossEn:
+      description: Low voltage cross enable
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    generatorStartCap:
+      description: Generator start capacity
+      default: "10"
+      example: "10"
+      required: false
+      selector:
+        text:
+    batteryLowCap:
+      description: Battery low capacity
+      default: "25"
+      example: "25"
       required: false
       selector:
         text:

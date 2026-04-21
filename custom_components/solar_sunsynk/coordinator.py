@@ -115,6 +115,8 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 ppv2: float = _to_float(pvIV_padded[1].get("ppv"))
 
                 sunsynk_data: Dict[str, Any] = {
+                    "inverter_sn": plant_sn_id.split("_")[-1],
+                    "settings": inverter_settings_data or {},
                     "Model": inverter_data.get("model") or inverter_data.get("brand", ""),
                     SunsynkNames.SolarProduction.value: etoday_val,
                     SunsynkNames.SolarToBattery.value: _to_float(inverter_battery_data.get("etodayChg")),

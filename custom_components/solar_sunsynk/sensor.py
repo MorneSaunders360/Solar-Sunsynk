@@ -212,7 +212,7 @@ class SunsynkSensor(CoordinatorEntity, SensorEntity):
     @property
     def name(self):
         """Return the name of the sensor."""
-        return f"{self._serial}_{self._name}"
+        return self._name
 
     @property
     def native_value(self):

@@ -7,7 +7,7 @@ import voluptuous as vol
 import homeassistant.helpers.config_validation as cv
 
 DOMAIN = "solar_sunsynk"
-PLATFORMS = [Platform.SENSOR]
+PLATFORMS = [Platform.SENSOR, Platform.BUTTON, Platform.SWITCH, Platform.NUMBER, Platform.TEXT, Platform.SELECT]
 
 NAME = "Solar Sunsynk"
 ISSUE_URL = "https://github.com/MorneSaunders360/Solar-Sunsynk/issues"
