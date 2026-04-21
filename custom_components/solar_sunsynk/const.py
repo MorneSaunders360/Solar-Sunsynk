@@ -75,5 +75,11 @@ SetSolarSettingsSchema = vol.Schema(
         vol.Optional("genTime4on"): cv.boolean,
         vol.Optional("genTime5on"): cv.boolean,
         vol.Optional("genTime6on"): cv.boolean,
+        vol.Optional("sellTime1on"): cv.boolean,
+        vol.Optional("sellTime2on"): cv.boolean,
+        vol.Optional("sellTime3on"): cv.boolean,
+        vol.Optional("sellTime4on"): cv.boolean,
+        vol.Optional("sellTime5on"): cv.boolean,
+        vol.Optional("sellTime6on"): cv.boolean,
     }
 )
