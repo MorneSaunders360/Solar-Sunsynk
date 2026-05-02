@@ -2,6 +2,7 @@
 from datetime import datetime, timedelta
 
 from homeassistant.components.button import ButtonEntity
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -37,6 +38,7 @@ class _SunsynkButtonBase(SunsynkSettingsMixin, CoordinatorEntity, ButtonEntity):
         self._config = config
         self._serial = serial
         self._sn: str = coordinator.data[serial]["inverter_sn"]
+        self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = sunsynk_device_info(coordinator, serial)
 
 

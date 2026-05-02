@@ -49,7 +49,7 @@
     - JSON keys: `"genTime1on"`, `"genTime2on"`, ... similar to Grid Charge.
     - HTML Elements: Checkboxes under "Gen Charge".
     - Values from JSON: All seem to be `"false"`.
-# To Set Battery Settings (Work in progress)
+# To Set Battery Settings
 ![image](https://github.com/MorneSaunders360/Solar-Sunsynk/assets/60499349/ba3f7924-d67a-45f1-8025-6d1bcb8c6d82)
 
 1. **Batt Type**:
@@ -162,7 +162,7 @@
     - HTML Element: Switch labeled "Low Noise Mode".
     - Value from JSON: `"lowNoiseMode":"8000"`.
 
-# To Set Auxiliary Load (Work in progress)
+# To Set Auxiliary Load
 ![image](https://github.com/MorneSaunders360/Solar-Sunsynk/assets/60499349/e5ac0fc3-2387-43ec-be4b-068237e42131)
 
 1. **SmartLoad Setup (Radio Buttons)**:
@@ -190,17 +190,46 @@
     - HTML Element: Input field labeled "ON %(0-100%)".
     - Value from JSON: `"genOnCap":"100"`.
 
-6. **AC couple on load side (Switch)**:
+6. **GEN connect to Grid input (Switch)**:
+    - JSON key: `"genConnectGrid"`
+    - HTML Element: Switch labeled "GEN connect to Grid input".
+    - Value from JSON: `"genConnectGrid":"1"` (Switched On).
+
+7. **AC couple on load side (Switch)**:
     - JSON key: `"acCoupleOnLoadSideEnable"`
     - HTML Element: Switch labeled "AC couple on load side".
     - Value from JSON: `"acCoupleOnLoadSideEnable":"0"` (Switched Off).
 
-7. **AC couple on grid side (Switch)**:
+8. **AC couple on grid side (Switch)**:
     - JSON key: `"acCoupleOnGridSideEnable"`
     - HTML Element: Switch labeled "AC couple on grid side".
     - Value from JSON: `"acCoupleOnGridSideEnable":"0"` (Switched Off).
+
+9. **Generator minimum solar power**:
+    - JSON key: `"genMinSolar"`
+    - Value from JSON: `"genMinSolar":"500"`.
+
+10. **Generator OFF voltage**:
+    - JSON key: `"genOffVolt"`
+    - Value from JSON: `"genOffVolt":"51"`.
+
+11. **Generator ON voltage**:
+    - JSON key: `"genOnVolt"`
+    - Value from JSON: `"genOnVolt":"54"`.
+
+12. **Grid always on**:
+    - JSON key: `"gridAlwaysOn"`
+    - Value from JSON: `"gridAlwaysOn":"0"` (Switched Off).
+
+13. **Off-grid immediately off**:
+    - JSON key: `"offGridImmediatelyOff"`
+    - Value from JSON: `"offGridImmediatelyOff":"0"` (Switched Off).
+
+14. **AC couple upper frequency**:
+    - JSON key: `"acCoupleFreqUpper"`
+    - Value from JSON: `"acCoupleFreqUpper":"52"`.
   
-# To Set Basic Settings (Work in progress)
+# To Set Basic Settings
 ![image](https://github.com/MorneSaunders360/Solar-Sunsynk/assets/60499349/fd62f60d-3b97-45cf-90dc-1e2a7a736d1b)
 
 1. **Time Syncs (Switch)**:
@@ -218,12 +247,17 @@
     - HTML Element: Switch labeled "AM/PM".
     - Value from JSON: `"ampm":"0"` (Switched Off).
 
-4. **Auto Dim Sec (Switch)**:
+4. **Lock out all changes (Switch)**:
+    - JSON key: `"lockOutChange"`
+    - HTML Element: Switch labeled "Lock out all changes".
+    - Value from JSON: `"lockOutChange":"0"` (Switched Off).
+
+5. **Auto Dim Sec (Switch)**:
     - JSON key: `"autoDim"`
     - HTML Element: Switch labeled "Auto Dim Sec".
     - Value from JSON: `"autoDim":"1"` (Switched On, as indicated by the `is-checked` class).
 
-# To Set Advanced Settings (Work in progress)
+# To Set Advanced Settings
 ![image](https://github.com/MorneSaunders360/Solar-Sunsynk/assets/60499349/296b1adc-b716-4545-9e40-ad8a5c7c4bd4)
 
 1. **Parallel (Switch)**:
@@ -265,4 +299,41 @@
     - JSON key: `"solarMaxSellPower"`
     - HTML Element: Input with label "Max Solar Power(1000 ~ 12000W)".
     - Value from JSON: `"solarMaxSellPower":"9000"`
-.
+
+# To Set Grid Settings
+
+1. **Grid peak-shaving (Switch)**:
+    - JSON key: `"gridPeakShaving"`
+    - Value from JSON: `"gridPeakShaving":"0"` (Switched Off).
+
+2. **Grid peak-shaving power**:
+    - JSON key: `"gridPeakPower"`
+    - Value from JSON: `"gridPeakPower":"8000"`.
+
+3. **Parallel and equipment settings**:
+    - JSON keys: `"parallel"`, `"equipMode"`, `"modbusSn"`, `"phase"`.
+    - Example values from JSON: `"parallel":"0"`, `"equipMode":"0"`, `"modbusSn":"0"`, `"phase":"2"`.
+
+4. **Meter and CT settings**:
+    - JSON keys: `"meterSelect"`, `"gridSideINVMeter2"`, `"exMeterCtSwitch"`, `"meterA"`, `"meterB"`, `"meterC"`, `"smartCTEnable"`, `"exMeterCT"`.
+    - Example values from JSON: `"meterSelect":"0"`, `"gridSideINVMeter2":"0"`, `"smartCTEnable":"0"`.
+
+5. **Generator and grid behavior**:
+    - JSON keys: `"genPeakShaving"`, `"genPeakPower"`, `"genConnectGrid"`, `"genToLoad"`, `"gridAlwaysOn"`, `"micExportGridOff"`.
+    - Example values from JSON: `"genPeakShaving":"0"`, `"genPeakPower":"8000"`, `"genConnectGrid":"1"`.
+
+6. **Protection and lock settings**:
+    - JSON keys: `"sensorsCheck"`, `"remoteLock"`, `"bmsErrStop"`, `"atsEnable"`, `"atsSwitch"`, `"drmEnable"`, `"backupDelay"`, `"signalIslandModeEnable"`, `"isletProtect"`.
+    - Example values from JSON: `"sensorsCheck":"-1"`, `"remoteLock":"0"`, `"bmsErrStop":"0"`.
+
+7. **Solar and MPPT settings**:
+    - JSON keys: `"solarMaxSellPower"`, `"solar1WindInputEnable"`, `"solar2WindInputEnable"`, `"solar3WindInputEnable"`, `"solar2WindInputEn"`, `"solar3WindInputEn"`, `"mpptMulti"`, `"pv1SelfCheck"`, `"pv2SelfCheck"`, `"pv3SelfCheck"`.
+    - Example values from JSON: `"solarMaxSellPower":"9000"`, `"mpptMulti":"1"`, `"pv2SelfCheck":"1"`.
+
+8. **Voltage and current curve settings**:
+    - JSON keys: `"volt1"` through `"volt12"` and `"current1"` through `"current12"`.
+    - These correspond to the advanced voltage/current values shown on the Grid Settings page.
+
+9. **Additional grid payload flags**:
+    - JSON keys: `"acOutputPowerLimit"`, `"risoEn"`, `"pwm"`, `"nightPowerSave"`, `"earthBond"`, `"codeMode"`, `"smartMeter2Enable"`, `"tenOverVoltEn"`, `"tenOverVoltVal"`, `"arcFactFrz"`.
+    - Example values from JSON: `"acOutputPowerLimit":"1"`, `"pwm":"0"`, `"arcFactFrz":"-2143004677"`.

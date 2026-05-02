@@ -37,13 +37,22 @@ class sunsynk_api:
 
         self._token: str = ""
         self._token_expires: datetime = datetime.now()
-        self._session: aiohttp.Session | None = None
+        self._session: aiohttp.ClientSession | None = None
 
         self._plants: list[dict] = []
 
     def __del__(self):
-        if self._session:
-            asyncio.run_coroutine_threadsafe(self._session.close(), self.hass.loop)
+        """Avoid async cleanup in the destructor.
+
+        Home Assistant may garbage collect this object after the event loop has
+        already closed, so session cleanup is handled explicitly by async_close.
+        """
+
+    async def async_close(self) -> None:
+        """Close the authenticated aiohttp session."""
+        if self._session and not self._session.closed:
+            await self._session.close()
+        self._session = None
 
     @property
     def token(self) -> str:

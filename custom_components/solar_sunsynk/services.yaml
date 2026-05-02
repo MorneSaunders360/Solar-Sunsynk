@@ -448,3 +448,1052 @@ set_solar_settings:
       required: false
       selector:
         boolean:
+
+set_battery_settings:
+  description: Set the battery settings.
+  fields:
+    sn:
+      description: Serial number
+      default: "2107269334"
+      example: "2107269334"
+      required: true
+      selector:
+        text:
+    safetyType:
+      description: Safety type
+      default: "2"
+      example: "2"
+      required: false
+      selector:
+        text:
+    battMode:
+      description: Battery mode
+      default: "-1"
+      example: "-1"
+      required: false
+      selector:
+        text:
+    batteryCap:
+      description: Battery capacity in Ah
+      default: "200"
+      example: "200"
+      required: false
+      selector:
+        text:
+    batteryMaxCurrentCharge:
+      description: Battery maximum charge current
+      default: "140"
+      example: "140"
+      required: false
+      selector:
+        text:
+    batteryMaxCurrentDischarge:
+      description: Battery maximum discharge current
+      default: "140"
+      example: "140"
+      required: false
+      selector:
+        text:
+    batteryEmptyV:
+      description: Battery empty voltage
+      default: "45"
+      example: "45"
+      required: false
+      selector:
+        text:
+    batteryImpedance:
+      description: Battery impedance
+      default: "8"
+      example: "8"
+      required: false
+      selector:
+        text:
+    batteryEfficiency:
+      description: Battery efficiency
+      default: "99"
+      example: "99"
+      required: false
+      selector:
+        text:
+    batteryShutdownCap:
+      description: Battery shutdown capacity
+      default: "10"
+      example: "10"
+      required: false
+      selector:
+        text:
+    batteryLowCap:
+      description: Battery low capacity
+      default: "25"
+      example: "25"
+      required: false
+      selector:
+        text:
+    batteryRestartCap:
+      description: Battery restart capacity
+      default: "30"
+      example: "30"
+      required: false
+      selector:
+        text:
+    batteryShutdownVolt:
+      description: Battery shutdown voltage
+      default: "46"
+      example: "46"
+      required: false
+      selector:
+        text:
+    batteryLowVolt:
+      description: Battery low voltage
+      default: "47.5"
+      example: "47.5"
+      required: false
+      selector:
+        text:
+    batteryRestartVolt:
+      description: Battery restart voltage
+      default: "52"
+      example: "52"
+      required: false
+      selector:
+        text:
+    batteryOn:
+      description: Battery enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    floatVolt:
+      description: Float voltage
+      default: "54"
+      example: "54"
+      required: false
+      selector:
+        text:
+    lithiumMode:
+      description: Lithium protocol mode
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sdChargeOn:
+      description: Grid charge enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    sdStartCap:
+      description: Grid charge start capacity
+      default: "30"
+      example: "30"
+      required: false
+      selector:
+        text:
+    sdBatteryCurrent:
+      description: Grid battery charge current
+      default: "40"
+      example: "40"
+      required: false
+      selector:
+        text:
+    genChargeOn:
+      description: Generator charge enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sdStartVol:
+      description: Grid charge start voltage legacy field
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    gridSignal:
+      description: Grid signal enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    generatorStartVolt:
+      description: Generator start voltage
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    generatorStartCap:
+      description: Generator start capacity
+      default: "10"
+      example: "10"
+      required: false
+      selector:
+        text:
+    generatorBatteryCurrent:
+      description: Generator battery charge current
+      default: "40"
+      example: "40"
+      required: false
+      selector:
+        text:
+    equChargeCycle:
+      description: Equalization charge cycle
+      default: "90"
+      example: "90"
+      required: false
+      selector:
+        text:
+    equChargeTime:
+      description: Equalization charge time
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    absorptionVolt:
+      description: Absorption voltage
+      default: "54"
+      example: "54"
+      required: false
+      selector:
+        text:
+    equVoltCharge:
+      description: Equalization charge voltage
+      default: "54"
+      example: "54"
+      required: false
+      selector:
+        text:
+    tempco:
+      description: Temperature compensation
+      default: "5"
+      example: "5"
+      required: false
+      selector:
+        text:
+    genSignal:
+      description: Generator signal enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sdStartVolt:
+      description: Grid charge start voltage
+      default: "49"
+      example: "49"
+      required: false
+      selector:
+        text:
+    generatorForcedStart:
+      description: Generator forced start enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    bmsErrStop:
+      description: BMS error stop enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    signalIslandModeEnable:
+      description: Signal island mode enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    lowPowerMode:
+      description: Low power mode enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    disableFloatCharge:
+      description: Disable float charge
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    lowNoiseMode:
+      description: Low noise mode
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    flag2:
+      description: Battery settings flag
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+
+set_basic_settings:
+  description: Set the basic settings.
+  fields:
+    sn:
+      description: Serial number
+      default: "2107269334"
+      example: "2107269334"
+      required: true
+      selector:
+        text:
+    timeSync:
+      description: Time sync enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    beep:
+      description: Beeper enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    ampm:
+      description: AM/PM time format enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    autoDim:
+      description: Auto dim enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    lockOutChange:
+      description: Lock out all changes enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+
+set_auxiliary_load_settings:
+  description: Set the auxiliary load settings.
+  fields:
+    sn:
+      description: Serial number
+      default: "2107269334"
+      example: "2107269334"
+      required: true
+      selector:
+        text:
+    safetyType:
+      description: Safety type
+      default: "2"
+      example: "2"
+      required: false
+      selector:
+        text:
+    battMode:
+      description: Battery mode
+      default: "-1"
+      example: "-1"
+      required: false
+      selector:
+        text:
+    genMinSolar:
+      description: Generator minimum solar power
+      default: "500"
+      example: "500"
+      required: false
+      selector:
+        text:
+    loadMode:
+      description: Smart load mode
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    genOffCap:
+      description: Generator off capacity
+      default: "95"
+      example: "95"
+      required: false
+      selector:
+        text:
+    genOnCap:
+      description: Generator on capacity
+      default: "100"
+      example: "100"
+      required: false
+      selector:
+        text:
+    genOffVolt:
+      description: Generator off voltage
+      default: "51"
+      example: "51"
+      required: false
+      selector:
+        text:
+    genOnVolt:
+      description: Generator on voltage
+      default: "54"
+      example: "54"
+      required: false
+      selector:
+        text:
+    gridAlwaysOn:
+      description: Grid always on enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    offGridImmediatelyOff:
+      description: Off-grid immediately off enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    acCoupleFreqUpper:
+      description: AC couple upper frequency
+      default: "52"
+      example: "52"
+      required: false
+      selector:
+        text:
+    genConnectGrid:
+      description: Generator connect to grid input enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    genPeakShaving:
+      description: Generator peak shaving enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    genPeakPower:
+      description: Generator peak shaving power
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    acCoupleOnLoadSideEnable:
+      description: AC couple on load side enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    acCoupleOnGridSideEnable:
+      description: AC couple on grid side enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+
+set_advanced_settings:
+  description: Set the advanced settings.
+  fields:
+    sn:
+      description: Serial number
+      default: "2107269334"
+      example: "2107269334"
+      required: true
+      selector:
+        text:
+    parallel:
+      description: Parallel enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    equipMode:
+      description: Equipment mode
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    modbusSn:
+      description: Modbus serial number
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    phase:
+      description: Phase
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    externalCtRatio:
+      description: CT ratio
+      default: "2000"
+      example: "2000"
+      required: false
+      selector:
+        text:
+    meterSelect:
+      description: Meter selection
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    gridSideINVMeter2:
+      description: Grid side INV Meter2 enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solarMaxSellPower:
+      description: Maximum solar power
+      default: "9000"
+      example: "9000"
+      required: false
+      selector:
+        text:
+
+set_grid_settings:
+  description: Set the grid settings.
+  fields:
+    sn:
+      description: Serial number
+      default: "2107269334"
+      example: "2107269334"
+      required: true
+      selector:
+        text:
+    genPeakShaving:
+      description: Generator peak shaving enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    gridPeakShaving:
+      description: Grid peak shaving enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    gridPeakPower:
+      description: Grid peak shaving power
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    parallel:
+      description: Parallel enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    modbusSn:
+      description: Modbus serial number
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    sensorsCheck:
+      description: Sensor check mode
+      default: "-1"
+      example: "-1"
+      required: false
+      selector:
+        text:
+    remoteLock:
+      description: Remote lock enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    gridAlwaysOn:
+      description: Grid always on enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    micExportGridOff:
+      description: Micro inverter export grid off enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    bmsErrStop:
+      description: BMS error stop enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    exMeterCtSwitch:
+      description: External meter CT switch
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    meterA:
+      description: Meter A setting
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    meterB:
+      description: Meter B setting
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    meterC:
+      description: Meter C setting
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    atsEnable:
+      description: ATS enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    atsSwitch:
+      description: ATS switch
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    meterSelect:
+      description: Meter selection
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    gridSideINVMeter2:
+      description: Grid side INV Meter2 enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    smartCTEnable:
+      description: Smart CT enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    equipMode:
+      description: Equipment mode
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solarMaxSellPower:
+      description: Maximum solar sell power
+      default: "9000"
+      example: "9000"
+      required: false
+      selector:
+        text:
+    drmEnable:
+      description: DRM enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    backupDelay:
+      description: Backup delay
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solar1WindInputEnable:
+      description: Solar 1 wind input enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solar2WindInputEnable:
+      description: Solar 2 wind input enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solar3WindInputEnable:
+      description: Solar 3 wind input enabled
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    solar2WindInputEn:
+      description: Solar 2 wind input enable flag
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    solar3WindInputEn:
+      description: Solar 3 wind input enable flag
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    phase:
+      description: Phase
+      default: "2"
+      example: "2"
+      required: false
+      selector:
+        text:
+    volt1:
+      description: Voltage setting 1
+      default: "-3174.1"
+      example: "-3174.1"
+      required: false
+      selector:
+        text:
+    volt2:
+      description: Voltage setting 2
+      default: "1946"
+      example: "1946"
+      required: false
+      selector:
+        text:
+    volt3:
+      description: Voltage setting 3
+      default: "512.5"
+      example: "512.5"
+      required: false
+      selector:
+        text:
+    volt4:
+      description: Voltage setting 4
+      default: "-921.1"
+      example: "-921.1"
+      required: false
+      selector:
+        text:
+    volt5:
+      description: Voltage setting 5
+      default: "-2354.6"
+      example: "-2354.6"
+      required: false
+      selector:
+        text:
+    volt6:
+      description: Voltage setting 6
+      default: "2765.5"
+      example: "2765.5"
+      required: false
+      selector:
+        text:
+    volt7:
+      description: Voltage setting 7
+      default: "1332"
+      example: "1332"
+      required: false
+      selector:
+        text:
+    volt8:
+      description: Voltage setting 8
+      default: "-101.6"
+      example: "-101.6"
+      required: false
+      selector:
+        text:
+    volt9:
+      description: Voltage setting 9
+      default: "-1535.1"
+      example: "-1535.1"
+      required: false
+      selector:
+        text:
+    volt10:
+      description: Voltage setting 10
+      default: "-2968.6"
+      example: "-2968.6"
+      required: false
+      selector:
+        text:
+    volt11:
+      description: Voltage setting 11
+      default: "2151.5"
+      example: "2151.5"
+      required: false
+      selector:
+        text:
+    volt12:
+      description: Voltage setting 12
+      default: "718"
+      example: "718"
+      required: false
+      selector:
+        text:
+    current1:
+      description: Current setting 1
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    current2:
+      description: Current setting 2
+      default: "384"
+      example: "384"
+      required: false
+      selector:
+        text:
+    current3:
+      description: Current setting 3
+      default: "768"
+      example: "768"
+      required: false
+      selector:
+        text:
+    current4:
+      description: Current setting 4
+      default: "1152"
+      example: "1152"
+      required: false
+      selector:
+        text:
+    current5:
+      description: Current setting 5
+      default: "1536"
+      example: "1536"
+      required: false
+      selector:
+        text:
+    current6:
+      description: Current setting 6
+      default: "1920"
+      example: "1920"
+      required: false
+      selector:
+        text:
+    current7:
+      description: Current setting 7
+      default: "2304"
+      example: "2304"
+      required: false
+      selector:
+        text:
+    current8:
+      description: Current setting 8
+      default: "2688"
+      example: "2688"
+      required: false
+      selector:
+        text:
+    current9:
+      description: Current setting 9
+      default: "3072"
+      example: "3072"
+      required: false
+      selector:
+        text:
+    current10:
+      description: Current setting 10
+      default: "-3097.6"
+      example: "-3097.6"
+      required: false
+      selector:
+        text:
+    current11:
+      description: Current setting 11
+      default: "-2713.6"
+      example: "-2713.6"
+      required: false
+      selector:
+        text:
+    current12:
+      description: Current setting 12
+      default: "-2329.6"
+      example: "-2329.6"
+      required: false
+      selector:
+        text:
+    signalIslandModeEnable:
+      description: Signal island mode enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    isletProtect:
+      description: Islet protection enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    mpptMulti:
+      description: MPPT multi-point scanning enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    pv1SelfCheck:
+      description: PV1 self check enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    pv2SelfCheck:
+      description: PV2 self check enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    pv3SelfCheck:
+      description: PV3 self check enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    acOutputPowerLimit:
+      description: AC output power limit
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    risoEn:
+      description: RISO enabled
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    pwm:
+      description: PWM setting
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    nightPowerSave:
+      description: Night power save enabled
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    earthBond:
+      description: Earth bond enabled
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    codeMode:
+      description: Code mode
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    smartMeter2Enable:
+      description: Smart meter 2 enabled
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    tenOverVoltEn:
+      description: Ten-minute over voltage enabled
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    tenOverVoltVal:
+      description: Ten-minute over voltage value
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    genToLoad:
+      description: Generator to load enabled
+      default: "0"
+      example: "0"
+      required: false
+      selector:
+        text:
+    exMeterCT:
+      description: External meter CT
+      default: "undefined"
+      example: "undefined"
+      required: false
+      selector:
+        text:
+    genConnectGrid:
+      description: Generator connect to grid input enabled
+      default: "1"
+      example: "1"
+      required: false
+      selector:
+        text:
+    genPeakPower:
+      description: Generator peak shaving power
+      default: "8000"
+      example: "8000"
+      required: false
+      selector:
+        text:
+    arcFactFrz:
+      description: Arc fault freeze value
+      default: "-2143004677"
+      example: "-2143004677"
+      required: false
+      selector:
+        text:

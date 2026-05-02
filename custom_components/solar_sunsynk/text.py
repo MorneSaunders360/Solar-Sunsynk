@@ -1,5 +1,6 @@
 """Sunsynk Text entities (time slot strings)."""
 from homeassistant.components.text import TextEntity
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
@@ -37,6 +38,7 @@ class SunsynkTimeText(SunsynkSettingsMixin, CoordinatorEntity, TextEntity):
         self._key = key
         self._attr_name = f"Sell Time {slot}"
         self._attr_unique_id = f"{config.entry_id}_{serial}_{key}"
+        self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = sunsynk_device_info(coordinator, serial)
 
     @property

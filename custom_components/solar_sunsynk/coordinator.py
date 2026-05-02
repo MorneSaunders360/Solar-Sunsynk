@@ -101,13 +101,6 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 total_load_val: float = _to_float(inverter_load_data.get("dailyUsed"))
                 solar_to_load: float = total_load_val - etoday_val if etoday_val > 0.0 else 0.0
 
-                caps_values: List[float] = []
-                for i in range(1, 7):
-                    key: str = f"cap{i}"
-                    if key in inverter_settings_data:
-                        caps_values.append(_to_float(inverter_settings_data.get(key)))
-                average_cap: float = (sum(caps_values) / len(caps_values)) if caps_values else 0.0
-
                 pvIV_raw: Any = inverter_input_data.get("pvIV")
                 pvIV_list: List[Dict[str, Any]] = pvIV_raw if isinstance(pvIV_raw, list) else []
                 pvIV_padded: List[Dict[str, Any]] = pvIV_list + [{}, {}]
@@ -135,7 +128,6 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                     SunsynkNames.Load.value: _to_float(inverter_load_data.get("totalPower")),
                     SunsynkNames.PPV1.value: ppv1,
                     SunsynkNames.PPV2.value: ppv2,
-                    SunsynkNames.SettingAverageCap.value: average_cap,
                 }
 
                 data[plant_sn_id] = sunsynk_data
