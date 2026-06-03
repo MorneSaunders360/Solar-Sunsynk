@@ -7,7 +7,7 @@ from collections import deque, defaultdict
 from statistics import mean
 
 import aiohttp
-from typing import Any, Dict, List
+from typing import Any, Callable, Dict, List
 from .enums import SunsynkNames
 from .sunsynkapi import sunsynk_api
 import datetime
@@ -40,6 +40,8 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
         )
         self.api = client
         self.update_method = self.update_inverter_data
+        self.pending_timed_grid_charge_restores: Dict[str, Callable[[], None]] = {}
+        self.timed_grid_charge_restore_values: Dict[str, Dict[str, str]] = {}
 
         self._updated_at_histories = defaultdict(lambda: deque(maxlen=3))
 
@@ -179,7 +181,7 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 most_recent_update = datetime.datetime.fromtimestamp(
                     self._updated_at_histories[plant_sn_id][-1], tz=datetime.UTC
                 )
-                _LOGGER.warning(
+                _LOGGER.debug(
                     f"Early update attempt detected for {plant_sn_id}! Most recent update was at {most_recent_update}"
                 )
 
