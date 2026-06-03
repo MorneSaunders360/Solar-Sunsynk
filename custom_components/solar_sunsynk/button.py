@@ -213,15 +213,19 @@ class SunsynkTimedButton(_SunsynkButtonBase):
         )
 
     async def async_press(self) -> None:
-                "sellTime1": now.strftime("%H:%M"),
-                "sellTime2": end.strftime("%H:%M"),
-                "time1on": "true" if self._is_charge else "false",
-                "time2on": "false",
-                "time3on": "false",
-                "time4on": "false",
-                "time5on": "false",
-                "time6on": "false",
-            }
+        now: datetime = dt_util.now()
+        action: str = "charge" if self._is_charge else "discharge"
+        _LOGGER.debug(
+            "Timed %s requested for %s minutes on %s at %s",
+            action,
+            self._minutes,
+            self._serial,
+            now.strftime(_TIME_FORMAT),
+        )
+        current_slot: int = self._get_current_slot(now)
+        setting_key: str = f"time{current_slot}on"
+        restore_key: str = f"{self._serial}_{setting_key}"
+        current_value: str = _normalize_bool_value(self._get_settings().get(setting_key))
         restore_values: dict[str, str] | None = (
             self._coordinator.timed_grid_charge_restore_values.get(restore_key)
         )
