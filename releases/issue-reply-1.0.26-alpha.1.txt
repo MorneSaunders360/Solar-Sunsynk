@@ -1,0 +1,11 @@
+Thank you for reporting this and for stopping further write tests.
+
+I have published experimental fixes as [1.0.26-alpha.1](https://github.com/MorneSaunders360/Solar-Sunsynk/releases/tag/v1.0.26-alpha.1), marked as an alpha prerelease. They address missing settings and inverter data, reject incomplete settings-entity writes, check the API's success response, and improve failure reporting. Controls now display cloud readback rather than briefly showing an unconfirmed requested value.
+
+I now use Solar Assistant for my own system and no longer use this integration, so I cannot verify these changes against a live Sunsynk installation myself. The automated tests use simulated API responses and lightweight Home Assistant test doubles; they do not prove live Home Assistant compatibility or that a physical inverter applies a write. This will remain an alpha prerelease pending feedback.
+
+Would you be willing to try the alpha, starting with normal polling while keeping your write automation disabled? That alone would help establish whether the missing-data errors are resolved. You have already said you will not perform further write tests, and I respect that; no write testing is expected from you.
+
+If another user is comfortable volunteering for a write test, please back up Home Assistant and record the current inverter settings first. Make only one deliberate scheduled SOC change while present, then compare Home Assistant with Sunsynk Connect or the inverter display through normal refresh cycles. Stop if it fails, reverts, affects another setting, or reports an uncertain outcome. An accepted API request is not confirmation that the inverter applied the setting.
+
+Feedback can be limited to your Home Assistant version, alpha version, affected slot, relative timing, whether the value persisted, and sanitized error types/messages. Please do not post raw logs or account, inverter, or plant identifiers. There is no need to share those publicly.

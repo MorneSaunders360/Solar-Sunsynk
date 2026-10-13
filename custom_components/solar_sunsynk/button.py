@@ -65,12 +65,6 @@ class _SunsynkButtonBase(SunsynkSettingsMixin, CoordinatorEntity, ButtonEntity):
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = sunsynk_device_info(coordinator, serial)
 
-    def _get_settings(self) -> dict[str, object]:
-        settings: object = self._coordinator.data[self._serial].get("settings", {})
-        if isinstance(settings, dict):
-            return settings
-        return {}
-
     def _get_current_slot(self, current_time: datetime) -> int:
         settings: dict[str, object] = self._get_settings()
         slot_times: list[int] = [
@@ -147,7 +141,6 @@ class _SunsynkButtonBase(SunsynkSettingsMixin, CoordinatorEntity, ButtonEntity):
             return
 
         await self._send_update({setting_key: previous_value})
-        self._get_settings()[setting_key] = previous_value
         _LOGGER.debug(
             "Restored timed grid charge setting for %s: %s=%s",
             self._serial,
@@ -182,9 +175,6 @@ class _SunsynkButtonBase(SunsynkSettingsMixin, CoordinatorEntity, ButtonEntity):
         await self._send_update(
             {restore_values["setting_key"]: restore_values["previous_value"]}
         )
-        self._get_settings()[restore_values["setting_key"]] = restore_values[
-            "previous_value"
-        ]
         _LOGGER.debug(
             "Reset restored timed grid charge setting for %s: %s=%s",
             self._serial,
@@ -265,7 +255,6 @@ class SunsynkTimedButton(_SunsynkButtonBase):
                 applied_value,
             )
             await self._send_update({setting_key: applied_value})
-            self._get_settings()[setting_key] = applied_value
             _LOGGER.debug(
                 "Sent timed %s update for %s: %s=%s",
                 action,

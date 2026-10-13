@@ -112,11 +112,11 @@ class sunsynk_api:
                 return resp
 
         except RetryError as e:
-            msg = f"Error fetching data from {url}: {e}. Giving up after 3 retries..."
+            msg: str = "Sunsynk data fetch failed after retries."
             _LOGGER.error(msg)
             raise HomeAssistantError(msg)
         except Exception as e:
-            _LOGGER.warning(f"Error fetching data from {url}: {e}. Retrying...")
+            _LOGGER.warning("Sunsynk data fetch failed (%s); retrying", type(e).__name__)
             raise e
 
     async def get_inverters_data(self, plant_id: str) -> dict[str, str]:
@@ -183,7 +183,9 @@ class sunsynk_api:
                 # Strip out exceptions
                 for k, v in zip(inverter_data, results):
                     inverter_data[k] = (
-                        v.get("data") if not isinstance(v, Exception) else None
+                        v.get("data")
+                        if isinstance(v, dict) and v.get("success") is not False
+                        else None
                     )
 
                 plant_sn_id = f"sunsynk_{plant_id}_{inverter_id}"
@@ -191,21 +193,37 @@ class sunsynk_api:
 
         return all_data
 
-    async def get_settings(self, inverter_sn: str) -> dict[str, str]:
+    async def get_settings(self, inverter_sn: str) -> dict[str, object]:
         return await self.fetch(f"api/v1/common/setting/{inverter_sn}/read")
 
-    @retry(
-        wait=wait_exponential(multiplier=1, min=4, max=10),
-        stop=stop_after_attempt(3),
-    )
     async def set_settings(
-        self, inverter_sn: str, setting_data: dict[str, str]
-    ) -> dict[str, str]:
-        async with (await self.session).post(
-            f"api/v1/common/setting/{inverter_sn}/set", json=setting_data
-        ) as resp:
-            resp.raise_for_status()
-            return await resp.json()
+        self, inverter_sn: str, setting_data: dict[str, object]
+    ) -> dict[str, object]:
+        try:
+            async with (await self.session).post(
+                f"api/v1/common/setting/{inverter_sn}/set", json=setting_data
+            ) as response:
+                response.raise_for_status()
+                result: object = await response.json()
+        except aiohttp.ClientResponseError as error:
+            _LOGGER.warning("Settings write failed with HTTP status %s", error.status)
+            raise HomeAssistantError(
+                f"Sunsynk settings write failed with HTTP status {error.status}."
+            ) from None
+        except Exception as error:
+            _LOGGER.warning("Settings write outcome is unknown (%s)", type(error).__name__)
+            raise HomeAssistantError(
+                "Sunsynk settings write outcome is unknown; check the setting "
+                "in Sunsynk Connect before attempting another write."
+            ) from None
+
+        if not isinstance(result, dict) or result.get("success") is not True:
+            _LOGGER.warning("Settings write did not receive a success confirmation")
+            raise HomeAssistantError(
+                "Sunsynk did not confirm the settings request as successful."
+            )
+        _LOGGER.debug("Settings request accepted; inverter application is not yet confirmed")
+        return result
 
     @retry(
         wait=wait_exponential(multiplier=1, min=4, max=10),

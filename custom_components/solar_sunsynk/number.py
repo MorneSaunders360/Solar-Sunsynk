@@ -1,5 +1,6 @@
 """Sunsynk Number entities."""
 from dataclasses import dataclass
+import math
 from typing import List
 
 from homeassistant.components.number import NumberEntity, NumberMode
@@ -165,6 +166,7 @@ class SunsynkNumber(SunsynkSettingsMixin, CoordinatorEntity, NumberEntity):
         self._serial = serial
         self._sn: str = coordinator.data[serial]["inverter_sn"]
         self._desc = desc
+        self._setting_key: str = desc.key
         self._attr_name = desc.name
         self._attr_unique_id = f"{config.entry_id}_{serial}_{desc.key}"
         self._attr_native_min_value = desc.min_value
@@ -176,18 +178,15 @@ class SunsynkNumber(SunsynkSettingsMixin, CoordinatorEntity, NumberEntity):
         self._attr_device_info = sunsynk_device_info(coordinator, serial)
 
     @property
-    def native_value(self) -> float:
-        optimistic = self._get_optimistic()
-        if optimistic is not None:
-            return optimistic
-        val = self.coordinator.data[self._serial].get("settings", {}).get(self._desc.key)
+    def native_value(self) -> float | None:
+        value: object = self._get_settings().get(self._desc.key)
         try:
-            return float(val) if val is not None else 0.0
+            numeric_value: float = float(value) if value is not None else math.nan
+            return numeric_value if math.isfinite(numeric_value) else None
         except (ValueError, TypeError):
-            return 0.0
+            return None
 
     async def async_set_native_value(self, value: float) -> None:
-        self._set_optimistic(value)
         await self._send_update({self._desc.key: _format_number(value)})
 
 

@@ -208,9 +208,15 @@ class SunsynkSensor(CoordinatorEntity, SensorEntity):
         return self._name
 
     @property
-    def native_value(self):
+    def available(self) -> bool:
+        inverter: dict[str, object] = (self._coordinator.data or {}).get(self._serial, {})
+        return super().available and inverter.get("statistics_available", False) is True
+
+    @property
+    def native_value(self) -> object | None:
         """Return the state of the resources."""
-        return self._coordinator.data[self._serial][self._name]
+        inverter: dict[str, object] = (self._coordinator.data or {}).get(self._serial, {})
+        return inverter.get(self._name)
 
     @property
     def native_unit_of_measurement(self):

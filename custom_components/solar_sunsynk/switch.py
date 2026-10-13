@@ -106,6 +106,7 @@ class SunsynkSwitch(SunsynkSettingsMixin, CoordinatorEntity, SwitchEntity):
         self._serial = serial
         self._sn: str = coordinator.data[serial]["inverter_sn"]
         self._desc = desc
+        self._setting_key: str = desc.key
         self._attr_name = desc.name
         self._attr_unique_id = f"{config.entry_id}_{serial}_{desc.key}"
         self._attr_entity_category = EntityCategory.CONFIG
@@ -113,17 +114,12 @@ class SunsynkSwitch(SunsynkSettingsMixin, CoordinatorEntity, SwitchEntity):
         self._attr_device_info = sunsynk_device_info(coordinator, serial)
 
     @property
-    def is_on(self) -> bool:
-        optimistic = self._get_optimistic()
-        if optimistic is not None:
-            return optimistic
-        val = self.coordinator.data[self._serial].get("settings", {}).get(self._desc.key, False)
-        return _is_truthy(val)
+    def is_on(self) -> bool | None:
+        value: object = self._get_settings().get(self._desc.key)
+        return _is_truthy(value) if value is not None else None
 
     async def async_turn_on(self, **kwargs) -> None:
-        self._set_optimistic(True)
         await self._send_update({self._desc.key: self._desc.on_value})
 
     async def async_turn_off(self, **kwargs) -> None:
-        self._set_optimistic(False)
         await self._send_update({self._desc.key: self._desc.off_value})

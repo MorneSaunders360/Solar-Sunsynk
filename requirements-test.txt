@@ -1,0 +1,6 @@
+aiohttp
+cryptography
+pytest
+pytest-asyncio
+tenacity>=9
+urllib3

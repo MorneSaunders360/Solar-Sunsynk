@@ -36,18 +36,16 @@ class SunsynkTimeText(SunsynkSettingsMixin, CoordinatorEntity, TextEntity):
         self._serial = serial
         self._sn: str = coordinator.data[serial]["inverter_sn"]
         self._key = key
+        self._setting_key: str = key
         self._attr_name = f"Sell Time {slot}"
         self._attr_unique_id = f"{config.entry_id}_{serial}_{key}"
         self._attr_entity_category = EntityCategory.CONFIG
         self._attr_device_info = sunsynk_device_info(coordinator, serial)
 
     @property
-    def native_value(self) -> str:
-        optimistic = self._get_optimistic()
-        if optimistic is not None:
-            return optimistic
-        return self.coordinator.data[self._serial].get("settings", {}).get(self._key, "00:00")
+    def native_value(self) -> str | None:
+        value: object = self._get_settings().get(self._key)
+        return value if isinstance(value, str) else None
 
     async def async_set_value(self, value: str) -> None:
-        self._set_optimistic(value)
         await self._send_update({self._key: value})

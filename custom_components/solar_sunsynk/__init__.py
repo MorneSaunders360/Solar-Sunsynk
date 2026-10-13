@@ -38,11 +38,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         sn = call.data.get("sn")
         setting_data = dict(call.data)
         setting_data["sn"] = sn
-        response = await client.set_settings(sn, setting_data)
-        if response.get("success") == True:
-            return True
-        else:
-            return False
+        await client.set_settings(sn, setting_data)
+        await coordinator.async_request_refresh()
 
     hass.services.async_register(
         DOMAIN, "set_solar_settings", async_set_settings, SetSolarSettingsSchema

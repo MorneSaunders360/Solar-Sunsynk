@@ -1,0 +1,31 @@
+Solar Sunsynk 1.0.26-alpha.1
+
+This is an experimental alpha prerelease, not the latest stable release.
+
+The maintainer now uses Solar Assistant and no longer uses this integration on their own system. The changes have automated coverage with simulated API responses and lightweight Home Assistant test doubles. They have not been verified in a running Home Assistant installation or against a physical Sunsynk inverter.
+
+Changes
+
+- Keep settings available independently of incomplete telemetry. Missing settings controls become unavailable, and missing or invalid numbers become unknown rather than zero.
+- Guard settings-entity writes against missing core, target, previously observed, and six-slot SOC/time settings. Read fresh settings before building a payload, preserve other fresh settings, and serialize entity writes per inverter.
+- Require an explicit API success response and report rejected, malformed, HTTP-error, and uncertain outcomes. Do not automatically retry settings POST requests.
+- Remove optimistic display updates and local setting mutations. Display cloud readback and warn when the first refresh has not confirmed an accepted request.
+- Omit identifiers and response bodies from new failure messages. Existing logs can still contain identifiers and should remain private.
+
+Limitations
+
+Cloud acknowledgement is not proof that the inverter applied a change. The first readback may be delayed. Validation is conservative and cannot prove completeness for every inverter model. The direct solar_sunsynk.set_* services validate the API response but do not use the settings-entity cached-data preflight. Automated tests do not establish live Home Assistant compatibility or real inverter persistence.
+
+Voluntary testing
+
+For a manual installation, extract only custom_components/solar_sunsynk from the attached ZIP into your Home Assistant configuration directory, replacing the existing integration files, then restart Home Assistant. The ZIP also contains documentation; do not copy those files into custom_components. Keep a copy of your previous integration version for rollback.
+
+Back up Home Assistant, record existing settings, and keep write automations disabled. Start with ordinary read-only polling. A reporter who has stopped write tests is not expected to resume.
+
+Only if comfortable, make one deliberate change to a familiar scheduled SOC setting while present. Compare Home Assistant with Sunsynk Connect or the inverter display over normal refresh cycles. Stop on errors, reversion, unintended changes, or uncertain outcomes; inspect the real setting before deciding whether to restore it. Do not repeatedly retry or resume automation based on an API acknowledgement.
+
+Provide only versions, the affected slot, relative timings, whether the setting persisted, and sanitized error types/messages. No raw logs, account information, credentials, tokens, plant IDs, serial numbers, or full entity IDs are needed publicly.
+
+Rollback
+
+Reinstall the previous integration version or restore your Home Assistant backup. Rolling back integration files does not restore inverter settings.

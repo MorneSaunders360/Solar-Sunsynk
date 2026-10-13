@@ -131,6 +131,7 @@ class SunsynkSelect(SunsynkSettingsMixin, CoordinatorEntity, SelectEntity):
         self._serial = serial
         self._sn: str = coordinator.data[serial]["inverter_sn"]
         self._desc = desc
+        self._setting_key: str = desc.key
         self._attr_name = desc.name
         self._attr_unique_id = f"{config.entry_id}_{serial}_{desc.key}"
         self._attr_options = list(desc.options.values())
@@ -139,13 +140,9 @@ class SunsynkSelect(SunsynkSettingsMixin, CoordinatorEntity, SelectEntity):
 
     @property
     def current_option(self) -> str | None:
-        optimistic = self._get_optimistic()
-        if optimistic is not None:
-            return optimistic
-        api_val = self.coordinator.data[self._serial].get("settings", {}).get(self._desc.key)
+        api_val: object = self._get_settings().get(self._desc.key)
         return self._desc.options.get(str(api_val) if api_val is not None else "")
 
     async def async_select_option(self, option: str) -> None:
-        self._set_optimistic(option)
-        api_val = next(k for k, v in self._desc.options.items() if v == option)
+        api_val: str = next(k for k, v in self._desc.options.items() if v == option)
         await self._send_update({self._desc.key: api_val})

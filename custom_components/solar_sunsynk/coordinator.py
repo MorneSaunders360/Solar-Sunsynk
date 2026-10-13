@@ -1,5 +1,6 @@
 """Coordinator for Sunsynk integration."""
 
+import asyncio
 import itertools
 import logging
 import statistics
@@ -39,6 +40,8 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
             update_interval=datetime.timedelta(seconds=DEFAULT_UPDATE_INTERVAL),
         )
         self.api = client
+        self.settings_write_locks: dict[str, asyncio.Lock] = {}
+        self.settings_keys: dict[str, set[str]] = {}
         self.update_method = self.update_inverter_data
         self.pending_timed_grid_charge_restores: Dict[str, Callable[[], None]] = {}
         self.timed_grid_charge_restore_values: Dict[str, Dict[str, str]] = {}
@@ -56,22 +59,22 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
             UpdateFailed: If there is a connection error, client response error or other error
                 while fetching or processing the data.
         """
-        data = {}
+        data: dict[str, dict[str, Any]] = {}
         try:
-            all_data = await self.api.get_all_data()
-        except aiohttp.client_exceptions.ClientConnectorError as conn_error:
-            _LOGGER.error("Connection error while fetching data: %s", conn_error)
-            raise UpdateFailed(conn_error) from conn_error
+            all_data: dict[str, dict[str, Any]] = await self.api.get_all_data()
+        except aiohttp.client_exceptions.ClientConnectorError:
+            _LOGGER.error("Connection error while fetching Sunsynk data")
+            raise UpdateFailed("Sunsynk connection failed") from None
 
         except aiohttp.ClientResponseError as response_error:
             _LOGGER.error(
-                "Client response error while fetching data: %s", response_error
+                "Client response error while fetching data: HTTP %s", response_error.status
             )
-            raise UpdateFailed(response_error) from response_error
+            raise UpdateFailed("Sunsynk HTTP request failed") from None
 
         except Exception as general_error:
-            _LOGGER.error("Unexpected error during data update: %s", general_error)
-            raise UpdateFailed(general_error) from general_error
+            _LOGGER.error("Unexpected error during data update (%s)", type(general_error).__name__)
+            raise UpdateFailed("Sunsynk data refresh failed") from None
 
         
 
@@ -89,15 +92,48 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 return 0.0
 
         for plant_sn_id, plant_sn_id_data in all_data.items():
+            inverter_metadata: object = plant_sn_id_data.get("inverter_data")
+            settings: object = plant_sn_id_data.get("inverter_settings_data")
+            if isinstance(settings, dict):
+                self.settings_keys.setdefault(plant_sn_id, set()).update(
+                    key for key, value in settings.items() if value is not None
+                )
+            metadata: dict[str, Any] = (
+                inverter_metadata if isinstance(inverter_metadata, dict) else {}
+            )
+            data[plant_sn_id] = {
+                "inverter_sn": plant_sn_id.split("_")[-1],
+                "settings": settings if isinstance(settings, dict) else {},
+                "Model": metadata.get("model") or metadata.get("brand", ""),
+                "statistics_available": False,
+            }
+            required_sections: tuple[str, ...] = (
+                "inverter_data",
+                "inverter_load_data",
+                "inverter_grid_data",
+                "inverter_battery_data",
+                "inverter_input_data",
+            )
+            if any(
+                not isinstance(plant_sn_id_data.get(section), dict)
+                or not plant_sn_id_data[section]
+                for section in required_sections
+            ):
+                _LOGGER.warning("Incomplete inverter telemetry; statistics are unavailable")
+                continue
             try:
                 inverter_data: Dict[str, Any] = plant_sn_id_data["inverter_data"]
-                inverter_settings_data: Dict[str, Any] = plant_sn_id_data["inverter_settings_data"]
                 inverter_load_data: Dict[str, Any] = plant_sn_id_data["inverter_load_data"]
                 inverter_grid_data: Dict[str, Any] = plant_sn_id_data["inverter_grid_data"]
                 inverter_battery_data: Dict[str, Any] = plant_sn_id_data["inverter_battery_data"]
                 inverter_input_data: Dict[str, Any] = plant_sn_id_data["inverter_input_data"]
 
-                self._record_updated_at(plant_sn_id, inverter_data["updateAt"])
+                updated_at: object = inverter_data.get("updateAt")
+                if isinstance(updated_at, str):
+                    try:
+                        self._record_updated_at(plant_sn_id, updated_at)
+                    except ValueError:
+                        _LOGGER.debug("Ignoring an invalid inverter update timestamp")
 
                 etoday_val: float = _to_float(inverter_input_data.get("etoday"))
                 total_load_val: float = _to_float(inverter_load_data.get("dailyUsed"))
@@ -110,8 +146,9 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                 ppv2: float = _to_float(pvIV_padded[1].get("ppv"))
 
                 sunsynk_data: Dict[str, Any] = {
+                    "statistics_available": True,
                     "inverter_sn": plant_sn_id.split("_")[-1],
-                    "settings": inverter_settings_data or {},
+                    "settings": data[plant_sn_id]["settings"],
                     "Model": inverter_data.get("model") or inverter_data.get("brand", ""),
                     SunsynkNames.SolarProduction.value: etoday_val,
                     SunsynkNames.SolarToBattery.value: _to_float(inverter_battery_data.get("etodayChg")),
@@ -136,24 +173,20 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
 
             except KeyError as key_error:
                 _LOGGER.error(
-                    "Missing key in data for inverter %s: %s",
-                    plant_sn_id,
-                    key_error,
+                    "Missing key while processing inverter statistics (%s)",
+                    type(key_error).__name__,
                 )
                 continue
             except IndexError as index_error:
                 _LOGGER.error(
-                    "IndexError for inverter %s while processing statistics: %s. Data: %s",
-                    plant_sn_id,
-                    index_error,
-                    plant_sn_id_data,
+                    "Unable to process inverter statistics (%s)",
+                    type(index_error).__name__,
                 )
                 continue
             except Exception as stats_error:
                 _LOGGER.error(
-                    "Unexpected error while processing statistics for inverter %s: %s",
-                    plant_sn_id,
-                    stats_error,
+                    "Unexpected error while processing inverter statistics (%s)",
+                    type(stats_error).__name__,
                 )
                 continue
 
@@ -182,7 +215,8 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
                     self._updated_at_histories[plant_sn_id][-1], tz=datetime.UTC
                 )
                 _LOGGER.debug(
-                    f"Early update attempt detected for {plant_sn_id}! Most recent update was at {most_recent_update}"
+                    "Early update attempt detected; most recent update was at %s",
+                    most_recent_update,
                 )
 
             # Skip duplicate update timestamps
@@ -206,7 +240,7 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
 
         for plant_sn_id, update_history in self._updated_at_histories.items():
             _LOGGER.debug(
-                f"Update history timestamps for {plant_sn_id} is {', '.join(str(uh) for uh in update_history)}"
+                "Inverter update history contains %s timestamps", len(update_history)
             )
 
             if (num_updates := len(update_history)) < 2:
@@ -223,7 +257,7 @@ class SunsynkDataUpdateCoordinator(DataUpdateCoordinator):
             avg_update_interval = statistics.mean(update_intervals)
 
             _LOGGER.debug(
-                f"Average update interval for {plant_sn_id} is {avg_update_interval} seconds"
+                "Average inverter update interval is %s seconds", avg_update_interval
             )
             avg_update_intervals.append(avg_update_interval)
 
